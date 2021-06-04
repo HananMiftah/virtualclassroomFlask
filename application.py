@@ -1,7 +1,9 @@
+import re
 from flask import Flask, request
 from flask_marshmallow import Marshmallow
 from flask_restplus import Api, Resource, fields
 from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from .settings import *
 from .models import *
@@ -38,6 +40,7 @@ student = api.model("Students", {
     'FirstName': fields.String(),
     'LastName': fields.String(),
     'Email': fields.String(),
+    'Password': fields.String(),
 })
 
 #############################################
@@ -50,12 +53,7 @@ AUTHENTICATION
 # @cross_origin()
 class authentication(Resource):
     def get(self):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return 
 
 #############################################
 '''
@@ -70,19 +68,24 @@ class studentsResource(Resource):
         Get Students Info
         '''
         students = Students.query.all()
-        print(students)
         return students_schema.dump(students)
 
 @stuNS.route('/api/authenticate/students/createstudent')
-# @cross_origin()
 class studentsResource(Resource):
+    @api.expect(student)
     def post(self):
         '''
-        Get Students Info
+        Create a new Student
         '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        new_student = Students()
+        new_student.FirstName = request.json['FirstName']
+        new_student.LastName = request.json['LastName']
+        new_student.Email = request.json['Email']
+        new_student.Password = generate_password_hash(request.json['Password'], method='sha256')
+
+        db.session.add(new_student)
+        db.session.commit()
+        return student_schema.dump(new_student)
 
 @stuNS.route('/api/authenticate/students/<int:stuID>')
 class studentResource(Resource):
@@ -98,29 +101,17 @@ class studentResource(Resource):
         '''
         Edit Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
 
 @stuNS.route('/api/authenticate/students/studentbyemail')
 class studentsResources(Resource):
     def get(self):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return
 
 @stuNS.route('/api/authenticate/students/studentbyemail/<int:studentEmail>')
 class studentsResourcesOne(Resource):
     def get(self,studentEmail):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return
 
 #############################################
 '''
@@ -131,41 +122,21 @@ INSTRUCTOR
 @insNS.route('/api/authenticate/instructors')
 class instructorsResource(Resource):
     def get(self):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return
 
 @insNS.route('/api/authenticate/instructors/createinstructor')
 class instructorsResource(Resource):
     def post(self):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return 
 
 
 @insNS.route('/api/authenticate/instructors/<int:instructorID>')
 class instructorResource(Resource):
     def get(self,instructorID):
-        '''
-        Get Student Info
-        '''
-        student = Students.query.filter_by(StudentID=instructorID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
     
     def patch(self,instructorID):
-        '''
-        Edit Student Info
-        '''
-        student = Students.query.filter_by(StudentID=instructorID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
 
 #############################################
 '''
@@ -175,46 +146,23 @@ RESOURCE
 @resNS.route('/api/courses/<int:courseID>/Resources')
 class resourcesResource(Resource):
     def get(self,courseID):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        print(students)
-        return students_schema.dump(students)
+        return
 
     def post(self,courseID):
-        '''
-        Create Student
-        '''
-        return student_schema.dump(student)
+        return
 
 @resNS.route('/api/courses/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
     def get(self,courseID,resourceID):
-        '''
-        Get Student Info
-        '''
-        student = Students.query.filter_by(StudentID=resourceID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
     
     def delete(self,courseID,resourceID):
-        '''
-        Edit Student Info
-        '''
-        student = Students.query.filter_by(StudentID=resourceID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
 
 @resNS.route('/api/courses/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     def get(self,courseID,resourceID):
-        '''
-        Get Student Info
-        '''
-        student = Students.query.filter_by(StudentID=resourceID).first()
-        print(student)
-        return student_schema.dump(student)
+        return
 
 #############################################
 '''
@@ -224,70 +172,43 @@ COURSE
 @couNS.route('/api/courses')
 class coursesResource(Resource):
     def post(self):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @couNS.route('/api/courses/<int:courseID>')
 class courseResource(Resource):
     def get(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
     def post(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
     def patch(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @couNS.route('/api/courses/<int:courseID>/student/<int:ids>')
 class courseResourceOne(Resource):
     def get(self,courseID,ids):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
 @couNS.route('/api/courses/<int:courseID>/students')
 class courseResourceTwo(Resource):
     def get(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @couNS.route('/api/courses/studentcourses')
 class courseResourceThree(Resource):
     def get(self):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @couNS.route('/api/courses/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
     def get(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @couNS.route('/api/courses/instructorcourses')
 class courseResourceFive(Resource):
     def get(self):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
 #############################################
 '''
@@ -298,35 +219,20 @@ CLASSROOM
 @clsNS.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
     def patch(self,courseID,classroomID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
 
 @clsNS.route('/api/courses/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
     def post(self,courseID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return
     
 @clsNS.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
     def get(self,courseID,classroomID):
-        '''
-        Get Student Info
-        '''
-        return student_schema.dump(student)
+        return

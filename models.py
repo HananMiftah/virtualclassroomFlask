@@ -9,11 +9,11 @@ db = SQLAlchemy()
 
 class Students(db.Model):
     __tablename__ = "students"
-    StudentID = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    Password = db.Column(db.String, nullable=False)
+    StudentID = db.Column(db.Integer, primary_key=True)
     FirstName = db.Column(db.String, nullable=False)
     LastName = db.Column(db.String, nullable=True)
     Email = db.Column(db.String, nullable=False)
+    Password = db.Column(db.String, nullable=False)
 
 class Instructors(db.Model):
     __tablename__ = "instructors"
