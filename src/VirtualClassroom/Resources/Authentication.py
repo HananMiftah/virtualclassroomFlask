@@ -31,30 +31,71 @@ userCred = api.model("UserCred", {
 class authentication(Resource):
     @api.expect(userCred)
     def post(self):
-        args = user_auth_arguments.parse_args()
-        username = args['username']
-        password = args['password']
-        user=Student.query.filter_by(Email=username).first()
+        username = request.json['UserName']
+        password = request.json['Password']
+        print("\n\n\nhere\n\n\n")
+
+        user=Students.query.filter_by(Email=username).first()
         role="Student"
+        print("\n\n\1\n\n\n")
         if user and  check_password_hash(user.Password , password):
+            print("\n\n\2\n\n\n")
+            
             expires = timedelta(days=30)
             additional_claims = {"role": role}
             token = create_access_token(
-                identity=user.id, 
+                identity=user.StudentID, 
                 expires_delta=expires,
                 additional_claims=additional_claims)
-            return {'token': token}
+            return {'id':user.StudentID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
         user=Instructors.query.filter_by(Email=username).first()
         role="Instrucotr"
+        print("\n\n\3\n\n\n")
+
         if user and  check_password_hash(user.Password , password):
             expires = timedelta(days=30)
             additional_claims = {"role": role}
             token = create_access_token(
-                identity=user.id, 
+                identity=user.InstructorID, 
                 expires_delta=expires,
                 additional_claims=additional_claims)
-            return {'token': token}
-        return abort(401, message="Incorrect Username or password")
+            return {'id':user.InstructorID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
+        
+        return "Incorrect Username or password" ,401
+
+
+
+
+        # args = user_auth_arguments.parse_args()
+        # username = args['username']
+        # password = args['password']
+        # user=Student.query.filter_by(Email=username).first()
+        # role="Student"
+        # if user and  check_password_hash(user.Password , password):
+        #     expires = timedelta(days=30)
+        #     additional_claims = {"role": role}
+        #     token = create_access_token(
+        #         identity=user.id, 
+        #         expires_delta=expires,
+        #         additional_claims=additional_claims)
+        #     return {'token': token}
+        # user=Instructors.query.filter_by(Email=username).first()
+        # role="Instrucotr"
+        # if user and  check_password_hash(user.Password , password):
+        #     expires = timedelta(days=30)
+        #     additional_claims = {"role": role}
+        #     token = create_access_token(
+        #         identity=user.id, 
+        #         expires_delta=expires,
+        #         additional_claims=additional_claims)
+        #     return {'token': token}
+        # return abort(401, message="Incorrect Username or password")
 
 
          

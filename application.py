@@ -108,25 +108,26 @@ class authentication(Resource):
                 identity=user.StudentID, 
                 expires_delta=expires,
                 additional_claims=additional_claims)
-            # return {'token': token}
+            return {'id':user.StudentID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
         user=Instructors.query.filter_by(Email=username).first()
         role="Instrucotr"
         print("\n\n\3\n\n\n")
 
         if user and  check_password_hash(user.Password , password):
-            print("\n\n\4\n\n\n")
-
             expires = timedelta(days=30)
             additional_claims = {"role": role}
             token = create_access_token(
                 identity=user.InstructorID, 
                 expires_delta=expires,
                 additional_claims=additional_claims)
-            # return {'token': token}
-        if user:
-            return {
-                "id":user.
-            }
+            return {'id':user.InstructorID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
+        
         return "Incorrect Username or password" ,401
 
 
