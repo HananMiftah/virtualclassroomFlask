@@ -49,18 +49,18 @@ class classroomResourceOne(Resource):
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
     def get(self,courseID,classroomID):
-        return
+        return {"sdf":"dsfasd"}
 
-from flask_socketio import Namespace, emit
+# from flask_socketio import Namespace, emit
 
-class MyCustomNamespace(Namespace):
-    def on_connect(self):
-        pass
+# class MyCustomNamespace(Namespace):
+#     def on_connect(self):
+#         pass
 
-    def on_disconnect(self):
-        pass
+#     def on_disconnect(self):
+#         pass
 
-    def on_my_event(self, data):
-        emit('my_response', data)
+#     def on_my_event(self, data):
+#         emit('my_response', data)
 
-socketio.on_namespace(MyCustomNamespace('/p/Courses/<int:courseID>/Classrooms/<int:classroomID>/join'))
+# socketio.on_namespace(MyCustomNamespace('/p/Courses/<int:courseID>/Classrooms/<int:classroomID>/join'))

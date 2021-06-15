@@ -1,6 +1,6 @@
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import model
-from .models import *
+from models import *
 
 ma = Marshmallow()
 
