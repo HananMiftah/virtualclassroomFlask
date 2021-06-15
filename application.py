@@ -39,6 +39,9 @@ CourseNamespace = api.namespace("Course", path="/api/courses")
 student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
 
+instructor_schema = InstructorSchema()
+instructor_schema = InstructorSchema(many=True)
+
 course_schema = CourseSchema()
 course_schema = CourseSchema(many=True)
 
@@ -51,20 +54,11 @@ student = api.model("Students", {
     'Password': fields.String(),
 })
 
-classroom = api.model("VirualClassrooms", {
-    'ClassroomName': fields.String(),
-    'URL': fields.String() 
-})
-#TODO
-course = api.model("Courses", {
-
-})
-
-instrucor = api.model("Instructors", {
-    "FirstName": fields.String(),
-    "LastName":fields.String(),
-    "Email": fields.String(),
-    "Password": fields.String() 
+instructor = api.model("Instructors", {
+    'FirstName': fields.String(),
+    'LastName': fields.String(),
+    'Email': fields.String(),
+    'Password': fields.String(),
 })
 
 #############################################
@@ -109,37 +103,33 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
-    def get(self,stuID):
+    def get(self,studentId):
         '''
         Get Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
         if student:
             return student_schema.dump(student)
         return "Student not found",404
-    @api.expect
-    def patch(self,stuID):
+    @api.expect(student)
+    def patch(self,studentId):
         '''
         Edit Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
-        return
+        #updating required fields
+        for key in request.json.keys():
+            if key == 'FirstName':
+                student.FirstName = request.json[key]
+            elif key == 'LastName':
+                student.LastName = request.json[key]
+            elif key == 'Email':
+                student.Email = request.json[key]
+        db.session.commit()
 
-@StudentNamespace.route('/studentbyemail')
-class studentsResources(Resource):
-    def get(self):
-        return
-
-@StudentNamespace.route('/studentbyemail/<int:studentEmail>')
-class studentsResourcesOne(Resource):
-    def get(self,studentEmail):
-        '''
-        Get Student Info Using Email
-        '''
-
-        return
+        return student_schema.dump(student), 200
 
 #############################################
 '''
@@ -147,24 +137,25 @@ INSTRUCTOR
 '''
 #############################################
 
-@InstructorsNamespace.route('')
-class instructorsResource(Resource):
-    def get(self):
-        return
 
 @InstructorsNamespace.route('/createinstructor')
 class instructorsResource(Resource):
-    @api.expect(instrucor)
+    @api.expect(instructor)
     def post(self):
+
         new_instructor = Instructors()
+        new_instructor.FirstName = request.json['FirstName']
+        new_instructor.LastName = request.json['LastName']
         new_instructor.Email = request.json['Email']
-        new_instructor.FirstName = request.json["FirstName"]
-        new_instructor.LastName = request.json["LastName"]
         new_instructor.Password = generate_password_hash(request.json['Password'], method='sha256')
+
+        instructor = Instructors.query.filter_by(Email=new_instructor.Email).first()
+        if instructor:
+            return "Email already taken", 400
 
         db.session.add(new_instructor)
         db.session.commit()
-        return json.dumps({"data": True})
+        return instructor_schema.dump(new_instructor), 201
 
 
 @InstructorsNamespace.route('/<int:instructorID>')
