@@ -1,5 +1,4 @@
 from marshmallow import fields, Schema, validate, validates, ValidationError
-from models import *
 from flask_sqlalchemy import model
 from . import ma
 
@@ -8,9 +7,9 @@ from .models import *
 
 class StudentSchema(ma.Schema):
     class Meta:
+        ordered =True
         fields = ("FirstName","LastName","Email", "StudentID")
         model = Students
-        ordered=True
     StudentID=fields.Integer(data_key="userid")
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
@@ -27,8 +26,9 @@ class StudentSchema(ma.Schema):
 
 class InstructorSchema(ma.Schema):
     class Meta:
-        fields = ("FirstName","LastName","Email")
+        fields = ("InstructorID","FirstName","LastName","Email")
         model = Instructors
+        ordered=True
     InstructorID=fields.Integer(data_key="userid")
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
@@ -46,11 +46,46 @@ class InstructorSchema(ma.Schema):
 #         model = ClassroomStudents()
 #         fields = ("FirstName","LastName","Email")
 
+
+
 class CourseSchema(ma.Schema):
     class Meta:
-
         fields = ("CourseID","InstructorID","CourseTitle","CourseDescription")
-        model = Courses
-# class Resource(ma.Schema):
-#     class Meta:
-#         fields = ("FirstName","LastName","Email")
+        model = COURSES
+    CourseID=fields.Integer(data_key="userid")
+    FirstName = fields.String(required=True)
+    LastName = fields.String(required=True)
+    Email = fields.Email(required=True)
+
+  
+class ADDSTUDENT:
+    CourseID=0
+    email= ""
+    name= ""
+  
+
+class AddStudentSchema(ma.Schema):
+    class Meta:
+        fields= ("CourseID","email","name")
+        model = ADDSTUDENT
+    
+
+
+class StudentListSchema(ma.Schema):
+    class Meta:
+        fields =("name","id","email")
+        model=STUDENTLIST
+
+class COURSES:
+    CourseID=0
+    InstructorID=0
+    CourseTitle=""
+    CourseDescription=""
+
+
+
+
+class STUDENTLIST:
+    name=""
+    id=0
+    email=""

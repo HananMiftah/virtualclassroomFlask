@@ -13,6 +13,7 @@ import json
 def init_api():
     from VirtualClassroom.Resources.classroom import ClassroomNamspace
     from VirtualClassroom.Resources.Authentication import AuthenticationNamespace
+    from VirtualClassroom.Resources.Student import StudentNamespace
 
 
 blueprint = Blueprint('api_v1', __name__)

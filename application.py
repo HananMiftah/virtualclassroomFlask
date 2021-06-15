@@ -298,7 +298,7 @@ class coursesResource(Resource):
        
 
 
-@CourseNamespace.route('<int:courseID/student/<int:studentID>')
+@CourseNamespace.route('/<int:courseID>/student/<int:studentID>')
 class deleteStudent(Resource):
     def delete(self,courseID,studentID):
         c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
