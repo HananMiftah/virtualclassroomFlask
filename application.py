@@ -97,7 +97,7 @@ AUTHENTICATION
 '''
 #############################################
 
-AuthenticationNamespace = api.namespace("Authentication", path="/api/authenticate")
+AuthenticationNamespace = api.namespace("Authentication", path="/authenticate")
 
 user_auth_arguments = reqparse.RequestParser()
 user_auth_arguments.add_argument('username', type=str, help="Username", required=True)
