@@ -35,12 +35,22 @@ CourseNamespace = api.namespace("Course", path="/api/courses")
 student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
 
+instructor_schema = InstructorSchema()
+instructor_schema = InstructorSchema(many=True)
+
 course_schema = CourseSchema()
 course_schema = CourseSchema(many=True)
 
 
 # Model required by flask_restplus for expect
 student = api.model("Students", {
+    'FirstName': fields.String(),
+    'LastName': fields.String(),
+    'Email': fields.String(),
+    'Password': fields.String(),
+})
+
+instructor = api.model("Instructors", {
     'FirstName': fields.String(),
     'LastName': fields.String(),
     'Email': fields.String(),
@@ -98,26 +108,13 @@ class studentResource(Resource):
         if student:
             return student_schema.dump(student)
         return "Student not found",404
-    @api.expect
+    
+    @
     def patch(self,stuID):
         '''
         Edit Student Info
         '''
         student = Students.query.filter_by(StudentID=stuID).first()
-
-        return
-
-@StudentNamespace.route('/studentbyemail')
-class studentsResources(Resource):
-    def get(self):
-        return
-
-@StudentNamespace.route('/studentbyemail/<int:studentEmail>')
-class studentsResourcesOne(Resource):
-    def get(self,studentEmail):
-        '''
-        Get Student Info Using Email
-        '''
 
         return
 
@@ -130,12 +127,30 @@ INSTRUCTOR
 @InstructorsNamespace.route('')
 class instructorsResource(Resource):
     def get(self):
+        '''
+        Create a new Student
+        '''
+        
         return
 
 @InstructorsNamespace.route('/createinstructor')
 class instructorsResource(Resource):
+    @api.expect(instructor)
     def post(self):
-        return 
+        
+        new_instructor = Instructors()
+        new_instructor.FirstName = request.json['FirstName']
+        new_instructor.LastName = request.json['LastName']
+        new_instructor.Email = request.json['Email']
+        new_instructor.Password = generate_password_hash(request.json['Password'], method='sha256')
+
+        instructor = Instructors.query.filter_by(Email=new_instructor.Email).first()
+        if instructor:
+            return "Email already taken", 400
+
+        db.session.add(new_instructor)
+        db.session.commit()
+        return instructor_schema.dump(new_instructor), 201
 
 
 @InstructorsNamespace.route('/<int:instructorID>')

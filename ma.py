@@ -25,6 +25,7 @@ class CourseSchema(ma.Schema):
 
         fields = ("CourseID","InstructorID","CourseTitle","CourseDescription")
         model = Courses
+        model = Instructors
 # class Resource(ma.Schema):
 #     class Meta:
 #         fields = ("FirstName","LastName","Email")
