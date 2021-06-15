@@ -99,24 +99,33 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
-    def get(self,stuID):
+    def get(self,studentId):
         '''
         Get Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
         if student:
             return student_schema.dump(student)
         return "Student not found",404
-    
-    @
-    def patch(self,stuID):
+    @api.expect(student)
+    def patch(self,studentId):
         '''
         Edit Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
-        return
+        #updating required fields
+        for key in request.json.keys():
+            if key == 'FirstName':
+                student.FirstName = request.json[key]
+            elif key == 'LastName':
+                student.LastName = request.json[key]
+            elif key == 'Email':
+                student.Email = request.json[key]
+        db.session.commit()
+
+        return student_schema.dump(student), 200
 
 #############################################
 '''
@@ -124,20 +133,12 @@ INSTRUCTOR
 '''
 #############################################
 
-@InstructorsNamespace.route('')
-class instructorsResource(Resource):
-    def get(self):
-        '''
-        Create a new Student
-        '''
-        
-        return
 
 @InstructorsNamespace.route('/createinstructor')
 class instructorsResource(Resource):
     @api.expect(instructor)
     def post(self):
-        
+
         new_instructor = Instructors()
         new_instructor.FirstName = request.json['FirstName']
         new_instructor.LastName = request.json['LastName']
