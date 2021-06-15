@@ -52,6 +52,7 @@ courses_schema = CourseSchema(many=True)
 add_student_schema = AddStudentSchema()
 add_students_schema = AddStudentSchema(many=True)
 
+studentList_schema = StudentListSchema(many=True)
 
 
 # Model required by flask_restplus for expect
@@ -237,7 +238,18 @@ class coursesResource(Resource):
        print(new_course)
        return course_schema.dump(new_course),201
        
-       
+
+
+@CourseNamespace.route('<int:courseID/student/<int:studentID>')
+class deleteStudent(Resource):
+    def delete(self,courseID,studentID):
+        c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
+        if not c:
+            return 'Student Not Registered in this course', 400
+            
+        db.session.delete()
+        db.session.commit()
+
 
 @CourseNamespace.route('/<int:courseID>')
 class courseResource(Resource):
@@ -270,38 +282,62 @@ class courseResource(Resource):
         stu.name = Students.query.filter_by(StudentID=add_student.StudentID).first().FirstName +" "+ Students.query.filter_by(StudentID=add_student.StudentID).first().LastName
         return add_student_schema.dump(stu), 200
     
-    def patch(self,courseID):
-        return
-
-@CourseNamespace.route('/student/<int:courseId>')
+@CourseNamespace.route('/student/<int:courseID>')
 class courseResourceOne(Resource):
     def get(self,courseID):
-        return
+        studentID = 1
+        course = Courses.query.filter_by(CourseID= courseID).first()
+        if not course:
+            return "Course Not Found", 404
+
+
+        c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
+        if not c:
+            return 'You are not registered to this course', 400
+            
+        return course_schema.dump(course)
 
     
+    # LIST OF STUDENTS IN A COURSE
 @CourseNamespace.route('/<int:courseID>/students')
 class courseResourceTwo(Resource):
     def get(self,courseID):
-        students = CourseStudents.query.filter_by(courseID = courseID).all()
-        print("\n\n")
-        print(students)
-        print("\n\n")
+        courses = CourseStudents.query.filter_by(CourseID = courseID).all()
+        students=[]
+        for course in courses:
+            student = StudentListSchema()
+            s = Students.query.filter_by(StudentID = course.StudentID).first()
+            student.name= s.FirstName + " " + s.LastName
+            student.email = s.Email
+            student.id = s.StudentID
+            students.append(student)
+
 
         # TODO : Create Schema
-        return students
+        return studentList_schema.dump(students)
 
     # def post(self,courseID):
 
     #     return 
-
+# A STUDENTS LIST OF COURSES
 @CourseNamespace.route('/studentcourses')
 class courseResourceThree(Resource):
     def get(self):
         # TODO fetch real student Id
         student_id = 1
         courses= CourseStudents.query.filter_by(StudentID=student_id).all()
-        
-        return courses_schema.dump(courses)
+        lst =[]
+
+        for course in courses:
+            a= COURSES()
+            c = Courses.query.filter_by(CourseID = course.CourseID).first()
+            a.CourseId = course.CourseID
+            a.CourseTitle = c.CourseTitle
+            a.CourseDescription = c.CourseDescription
+            a.InstructorID = c.InstructorID
+            lst.append(a)
+
+        return courses_schema.dump(lst)
 
 @CourseNamespace.route('/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
