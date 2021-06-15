@@ -5,9 +5,9 @@ from flask_restplus import Api, Resource, fields
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .settings import *
-from .models import *
-from .ma import *
+from settings import *
+from models import *
+from ma import *
 
 
 
@@ -23,6 +23,10 @@ ma = Marshmallow(app)
 
 api = Api(app, version='1.0', title='Virtual Classroom API',
           description='A simple Virtual Classroom API')
+
+StudentNamespace = api.namespace("Student", path="/api/student")
+InstructorsNamespace = api.namespace("Instructor", path="/api/Instructor")
+
 
 student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
@@ -56,18 +60,9 @@ class authentication(Resource):
 STUDENT
 '''
 #############################################
-@api.route('/api/authenticate/students')
-# @cross_origin()
-class studentsResource(Resource):
-    def get(self):
-        '''
-        Get Students Info
-        '''
-        students = Students.query.all()
-        return students_schema.dump(students)
 
-@api.route('/api/authenticate/students/createstudent')
-class studentsResource(Resource):
+@StudentNamespace.route('/authenticate/students/createstudent')
+class Student(Resource):
     @api.expect(student)
     def post(self):
         '''
@@ -82,12 +77,11 @@ class studentsResource(Resource):
 
         student = Students.query.filter_by(Email=new_student.Email).first()
         if student:
-            flash('This email is already registered!!!', 'error')
-            return 404
+            return "Email already taken", 400
 
         db.session.add(new_student)
         db.session.commit()
-        return student_schema.dump(new_student)
+        return student_schema.dump(new_student), 201
 
 @api.route('/api/authenticate/students/<int:stuID>')
 class studentResource(Resource):
@@ -98,12 +92,15 @@ class studentResource(Resource):
         student = Students.query.filter_by(StudentID=stuID).first()
 
         if student:
-            returnstudent_schema.dump(student)
-        return 404
+            return student_schema.dump(student)
+        return "Student not found",404
+    @api.expect
     def patch(self,stuID):
         '''
         Edit Student Info
         '''
+        student = Students.query.filter_by(StudentID=stuID).first()
+
         return
 
 @api.route('/api/authenticate/students/studentbyemail')
@@ -239,3 +236,6 @@ class classroomResourceOne(Resource):
 class classroomResourceTwo(Resource):
     def get(self,courseID,classroomID):
         return
+
+if __name__ == "__main__":
+    app.run(debug=True)
