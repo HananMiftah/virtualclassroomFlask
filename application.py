@@ -3,6 +3,10 @@ from flask import Flask, request, flash
 from flask_marshmallow import Marshmallow
 from flask_restplus import Api, Resource, fields,reqparse
 from flask_cors import CORS
+from marshmallow import ValidationError
+from flask_jwt_extended import (get_jwt_identity)
+
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from settings import *
@@ -49,7 +53,11 @@ instructor_schema = InstructorSchema()
 instructors_schema = InstructorSchema(many=True)
 
 course_schema = CourseSchema()
-course_schema = CourseSchema(many=True)
+courses_schema = CourseSchema(many=True)
+
+add_student_schema = AddStudentSchema()
+add_students_schema = AddStudentSchema(many=True)
+
 
 
 # Model required by flask_restplus for expect
@@ -59,6 +67,22 @@ student = api.model("Students", {
     'Email': fields.String(),
     'Password': fields.String(),
 })
+
+
+# Model required by flask_restplus for expect
+course = api.model("Courses", {
+    'InstructorID': fields.Integer(),
+    'CourseTitle': fields.String(),
+    'CourseDescription': fields.String(),
+    
+})
+
+
+courseStudents = api.model("CourseStudents",{
+    'CourseID': fields.Integer(),
+    'StudentID': fields.Integer()
+})
+
 
 instructor = api.model("Instructors", {
     'FirstName': fields.String(),
@@ -257,44 +281,106 @@ COURSE
 #############################################
 @CourseNamespace.route('')
 class coursesResource(Resource):
+    @api.expect(course)
     def post(self):
-        return
+       new_course = Courses()
+       new_course.InstructorID = request.json['InstructorID']
+       new_course.CourseTitle = request.json['CourseTitle']
+       new_course.CourseDescription = request.json['CourseDescription']
+
+       db.session.add(new_course)
+
+    
+       db.session.commit()
+       print(new_course)
+       return course_schema.dump(new_course),201
+       
+       
 
 @CourseNamespace.route('/<int:courseID>')
 class courseResource(Resource):
     def get(self,courseID):
-        return
+        result = Courses.query.filter_by(CourseID=courseID).first()
+
+        if not result:
+            return "Course Not Found", 404
+
+        return course_schema.dump(result)
     
+    @api.expect(courseStudents)
     def post(self,courseID):
-        return
+        
+        student = CourseStudents.query.filter_by(StudentID = request.json['StudentID'], CourseID= courseID).first()
+        if student:
+            abort(400, message="Student Already Registered")
+        
+        add_student = CourseStudents()
+        add_student.CourseID = request.json['CourseID']
+        add_student.StudentID = request.json['StudentID']
+
+        db.session.add(add_student)
+        db.session.commit()
+        print("COMMIT")
+        stu=ADDSTUDENT()
+        stu.CourseID=add_student.CourseID
+        print(Students.query.filter_by(StudentID=add_student.StudentID).first())
+        stu.email = Students.query.filter_by(StudentID=add_student.StudentID).first().Email
+        stu.name = Students.query.filter_by(StudentID=add_student.StudentID).first().FirstName +" "+ Students.query.filter_by(StudentID=add_student.StudentID).first().LastName
+        return add_student_schema.dump(stu), 200
     
     def patch(self,courseID):
         return
 
-@CourseNamespace.route('/<int:courseID>/student/<int:ids>')
+@CourseNamespace.route('/student/<int:courseId>')
 class courseResourceOne(Resource):
-    def get(self,courseID,ids):
+    def get(self,courseID):
         return
+
     
 @CourseNamespace.route('/<int:courseID>/students')
 class courseResourceTwo(Resource):
     def get(self,courseID):
-        return
+        students = CourseStudents.query.filter_by(courseID = courseID).all()
+        print("\n\n")
+        print(students)
+        print("\n\n")
+
+        # TODO : Create Schema
+        return students
+
+    # def post(self,courseID):
+
+    #     return 
 
 @CourseNamespace.route('/studentcourses')
 class courseResourceThree(Resource):
     def get(self):
-        return
+        # TODO fetch real student Id
+        student_id = 1
+        courses= CourseStudents.query.filter_by(StudentID=student_id).all()
+        
+        return courses_schema.dump(courses)
 
 @CourseNamespace.route('/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
     def get(self,courseID):
-        return
+        # TODO fetch real student Id
+        student_id = get_jwt_identity()
+        course= CourseStudents.query.filter_by(StudentID=student_id, CourseID=courseID).first()
+        if course:
+            return Courses.query.filter_by(courseID = courseID).first()
+        return abort(404, 'Student Not enrolled')
 
 @CourseNamespace.route('/instructorcourses')
 class courseResourceFive(Resource):
     def get(self):
-        return
+        # TODO fetch real instructor Id
+        instructorId = get_jwt_identity()
+
+        courseLst = Courses(InstructorID = instructorId).all()
+
+        # TODO create Schema
+        return courseLst
     
 #############################################
 '''
