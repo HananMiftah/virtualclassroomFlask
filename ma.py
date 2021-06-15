@@ -23,18 +23,24 @@ class InstructorSchema(ma.Schema):
 #         model = ClassroomStudents()
 #         fields = ("FirstName","LastName","Email")
 
+
+class COURSES:
+    CourseID=0
+    InstructorID=0
+    CourseTitle=""
+    CourseDescription=""
+
 class CourseSchema(ma.Schema):
     class Meta:
         fields = ("CourseID","InstructorID","CourseTitle","CourseDescription")
-        model = Courses
+        model = COURSES
 
   
-
-
 class ADDSTUDENT:
     CourseID=0
     email= ""
     name= ""
+  
 
 class AddStudentSchema(ma.Schema):
     class Meta:
@@ -43,3 +49,14 @@ class AddStudentSchema(ma.Schema):
     
 
 
+
+class STUDENTLIST:
+    name=""
+    id=0
+    email=""
+
+
+class StudentListSchema(ma.Schema):
+    class Meta:
+        fields =("name","id","email")
+        model=STUDENTLIST
