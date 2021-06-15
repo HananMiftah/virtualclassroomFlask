@@ -1,4 +1,5 @@
 from flask_marshmallow import Marshmallow
+from flask_sqlalchemy import model
 from .models import *
 
 ma = Marshmallow()
@@ -6,7 +7,8 @@ ma = Marshmallow()
 
 class StudentSchema(ma.Schema):
     class Meta:
-        fields = ("FirstName","LastName","Email")
+        fields = ("FirstName","LastName","Email", "StudentID")
+        model = Students
 
 class InstructorSchema(ma.Schema):
     class Meta:
