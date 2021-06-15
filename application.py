@@ -1,7 +1,7 @@
 import re
 from flask import Flask, request, flash
 from flask_marshmallow import Marshmallow
-from flask_restplus import Api, Resource, fields, abort
+from flask_restplus import Api, Resource, fields,reqparse
 from flask_cors import CORS
 from marshmallow import ValidationError
 from flask_jwt_extended import (get_jwt_identity)
@@ -13,17 +13,23 @@ from settings import *
 from models import *
 from ma import *
 import json
-
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import ( create_access_token, get_jwt,
+                            jwt_required, get_jwt_identity)
+from datetime import timedelta
 
 
 app = Flask(__name__)
 CORS(app)
-
+jwt=JWTManager(app)
 db_uri = SQLALCHEMY_DATABASE_URI
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
+app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['JWT_SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['JWT_BLACKLIST_ENABLED'] = ['access']
 app.debug = True
 
 db.init_app(app)
@@ -52,6 +58,7 @@ courses_schema = CourseSchema(many=True)
 add_student_schema = AddStudentSchema()
 add_students_schema = AddStudentSchema(many=True)
 
+studentList_schema = StudentListSchema(many=True)
 
 
 # Model required by flask_restplus for expect
@@ -91,11 +98,63 @@ AUTHENTICATION
 '''
 #############################################
 
+AuthenticationNamespace = api.namespace("Authentication", path="/authenticate")
+
+user_auth_arguments = reqparse.RequestParser()
+user_auth_arguments.add_argument('username', type=str, help="Username", required=True)
+user_auth_arguments.add_argument('password', type=str, help="Password", required=True)
+
+userCred = api.model("UserCred", {
+    'UserName': fields.String(),
+    'Password': fields.String() 
+})
+
 @AuthenticationNamespace.route('')
 # @cross_origin()
+
 class authentication(Resource):
-    def get(self):
-        return 
+    @api.expect(userCred)
+    def post(self):
+        print("\n\n\nhere\n\n\n")
+        # args = user_auth_arguments.parse_args()
+        username = request.json['UserName']
+        password = request.json['Password']
+        print("\n\n\nhere\n\n\n")
+
+        user=Students.query.filter_by(Email=username).first()
+        role="Student"
+        print("\n\n\1\n\n\n")
+        if user and  check_password_hash(user.Password , password):
+            print("\n\n\2\n\n\n")
+            
+            expires = timedelta(days=30)
+            additional_claims = {"role": role}
+            token = create_access_token(
+                identity=user.StudentID, 
+                expires_delta=expires,
+                additional_claims=additional_claims)
+            return {'id':user.StudentID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
+        user=Instructors.query.filter_by(Email=username).first()
+        role="Instrucotr"
+        print("\n\n\3\n\n\n")
+
+        if user and  check_password_hash(user.Password , password):
+            expires = timedelta(days=30)
+            additional_claims = {"role": role}
+            token = create_access_token(
+                identity=user.InstructorID, 
+                expires_delta=expires,
+                additional_claims=additional_claims)
+            return {'id':user.InstructorID,
+                    'name':user.FirstName + " " + user.LastName,
+                    'role':role,
+                    'token': token}
+        
+        return "Incorrect Username or password" ,401
+
 
 #############################################
 '''
@@ -237,7 +296,18 @@ class coursesResource(Resource):
        print(new_course)
        return course_schema.dump(new_course),201
        
-       
+
+
+@CourseNamespace.route('<int:courseID/student/<int:studentID>')
+class deleteStudent(Resource):
+    def delete(self,courseID,studentID):
+        c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
+        if not c:
+            return 'Student Not Registered in this course', 400
+            
+        db.session.delete()
+        db.session.commit()
+
 
 @CourseNamespace.route('/<int:courseID>')
 class courseResource(Resource):
@@ -270,38 +340,62 @@ class courseResource(Resource):
         stu.name = Students.query.filter_by(StudentID=add_student.StudentID).first().FirstName +" "+ Students.query.filter_by(StudentID=add_student.StudentID).first().LastName
         return add_student_schema.dump(stu), 200
     
-    def patch(self,courseID):
-        return
-
-@CourseNamespace.route('/student/<int:courseId>')
+@CourseNamespace.route('/student/<int:courseID>')
 class courseResourceOne(Resource):
     def get(self,courseID):
-        return
+        studentID = 1
+        course = Courses.query.filter_by(CourseID= courseID).first()
+        if not course:
+            return "Course Not Found", 404
+
+
+        c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
+        if not c:
+            return 'You are not registered to this course', 400
+            
+        return course_schema.dump(course)
 
     
+    # LIST OF STUDENTS IN A COURSE
 @CourseNamespace.route('/<int:courseID>/students')
 class courseResourceTwo(Resource):
     def get(self,courseID):
-        students = CourseStudents.query.filter_by(courseID = courseID).all()
-        print("\n\n")
-        print(students)
-        print("\n\n")
+        courses = CourseStudents.query.filter_by(CourseID = courseID).all()
+        students=[]
+        for course in courses:
+            student = StudentListSchema()
+            s = Students.query.filter_by(StudentID = course.StudentID).first()
+            student.name= s.FirstName + " " + s.LastName
+            student.email = s.Email
+            student.id = s.StudentID
+            students.append(student)
+
 
         # TODO : Create Schema
-        return students
+        return studentList_schema.dump(students)
 
     # def post(self,courseID):
 
     #     return 
-
+# A STUDENTS LIST OF COURSES
 @CourseNamespace.route('/studentcourses')
 class courseResourceThree(Resource):
     def get(self):
         # TODO fetch real student Id
         student_id = 1
         courses= CourseStudents.query.filter_by(StudentID=student_id).all()
-        
-        return courses_schema.dump(courses)
+        lst =[]
+
+        for course in courses:
+            a= COURSES()
+            c = Courses.query.filter_by(CourseID = course.CourseID).first()
+            a.CourseId = course.CourseID
+            a.CourseTitle = c.CourseTitle
+            a.CourseDescription = c.CourseDescription
+            a.InstructorID = c.InstructorID
+            lst.append(a)
+
+        return courses_schema.dump(lst)
 
 @CourseNamespace.route('/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):

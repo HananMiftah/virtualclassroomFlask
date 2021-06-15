@@ -2,7 +2,7 @@ from flask import Flask, request, flash
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_jwt_extended import JWTManager
 from VirtualClassroom.config import *
 
 db = SQLAlchemy()
@@ -15,7 +15,7 @@ def create_app():
     app = Flask(__name__)
     app.register_blueprint(blueprint, url_prefix='/api')
 
-
+    jwt=JWTManager(app)
     db_uri = SQLALCHEMY_DATABASE_URI
     if db_uri.startswith("postgres://"):
         db_uri = db_uri.replace("postgres://", "postgresql://", 1)
