@@ -12,15 +12,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .settings import *
 from .models import *
 from .ma import *
+import json
 
 
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+db_uri = SQLALCHEMY_DATABASE_URI
+if db_uri.startswith("postgres://"):
+    db_uri = db_uri.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
-
+app.debug = True
 
 db.init_app(app)
 ma = Marshmallow(app)
@@ -38,6 +42,9 @@ CourseNamespace = api.namespace("Course", path="/api/courses")
 
 student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
+
+instructor_schema = InstructorSchema()
+instructors_schema = InstructorSchema(many=True)
 
 course_schema = CourseSchema()
 course_schema = CourseSchema(many=True)
@@ -66,6 +73,13 @@ courseStudents = api.model("CourseStudents",{
     'StudentID': fields.Integer()
 })
 
+
+instructor = api.model("Instructors", {
+    'FirstName': fields.String(),
+    'LastName': fields.String(),
+    'Email': fields.String(),
+    'Password': fields.String(),
+})
 
 #############################################
 '''
@@ -109,33 +123,33 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
-    def get(self,stuID):
+    def get(self,studentId):
         '''
         Get Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
         if student:
             return student_schema.dump(student)
         return "Student not found",404
-    @api.expect
-    def patch(self,stuID):
+    @api.expect(student)
+    def patch(self,studentId):
         '''
         Edit Student Info
         '''
-        student = Students.query.filter_by(StudentID=stuID).first()
+        student = Students.query.filter_by(StudentID=studentId).first()
 
-        return
+        #updating required fields
+        for key in request.json.keys():
+            if key == 'FirstName':
+                student.FirstName = request.json[key]
+            elif key == 'LastName':
+                student.LastName = request.json[key]
+            elif key == 'Email':
+                student.Email = request.json[key]
+        db.session.commit()
 
-@StudentNamespace.route('/studentbyemail')
-class studentsResources(Resource):
-    def get(self):
-        return
-
-@StudentNamespace.route('/studentbyemail/<int:studentEmail>')
-class studentsResourcesOne(Resource):
-    def get(self,studentEmail):
-        return
+        return student_schema.dump(student), 200
 
 #############################################
 '''
@@ -143,15 +157,25 @@ INSTRUCTOR
 '''
 #############################################
 
-@InstructorsNamespace.route('')
-class instructorsResource(Resource):
-    def get(self):
-        return
 
 @InstructorsNamespace.route('/createinstructor')
 class instructorsResource(Resource):
+    @api.expect(instructor)
     def post(self):
-        return 
+
+        new_instructor = Instructors()
+        new_instructor.FirstName = request.json['FirstName']
+        new_instructor.LastName = request.json['LastName']
+        new_instructor.Email = request.json['Email']
+        new_instructor.Password = generate_password_hash(request.json['Password'], method='sha256')
+
+        instructor = Instructors.query.filter_by(Email=new_instructor.Email).first()
+        if instructor:
+            return "Email already taken", 400
+
+        db.session.add(new_instructor)
+        db.session.commit()
+        return instructor_schema.dump(new_instructor), 201
 
 
 @InstructorsNamespace.route('/<int:instructorID>')
@@ -311,7 +335,8 @@ CLASSROOM
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        return
+        classRoom = VirtualClassrooms.query.get(classroomID)
+        return json.dump(classRoom)
     
     def patch(self,courseID,classroomID):
         return
@@ -319,10 +344,19 @@ class classroomResource(Resource):
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
-        return
+        classrooms = VirtualClassrooms.query.all()
+        return {"Data": "Success"}
     
+    @api.expect(classroom)
     def post(self,courseID):
-        return
+        new_classroom = VirtualClassrooms()
+        new_classroom.ClassroomName = request.json['ClassroomName']
+        new_classroom.CourseID = courseID
+        new_classroom.URL = request.json['URL']
+
+        db.session.add(new_classroom)
+        db.session.commit()
+        return json.dump(new_classroom)
     
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):

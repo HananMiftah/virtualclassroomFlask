@@ -1,8 +1,8 @@
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import model
-from .models import *
+from . import ma
 
-ma = Marshmallow()
+from .models import *
 
 
 class StudentSchema(ma.Schema):
@@ -25,7 +25,6 @@ class CourseSchema(ma.Schema):
 
         fields = ("CourseID","InstructorID","CourseTitle","CourseDescription")
         model = Courses
-        model = Instructors
 # class Resource(ma.Schema):
 #     class Meta:
 #         fields = ("FirstName","LastName","Email")

@@ -1,9 +1,8 @@
 from flask_restplus.fields import ClassName
-from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
 from marshmallow.fields import Email
 
+from . import db
 
 
 class Students(db.Model):
