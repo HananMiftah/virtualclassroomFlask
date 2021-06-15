@@ -5,7 +5,7 @@ from datetime import datetime
 from marshmallow.fields import Email
 
 
-
+db=SQLAlchemy()
 class Students(db.Model):
     __tablename__ = "students"
     StudentID = db.Column(db.Integer, primary_key=True)
