@@ -5,9 +5,9 @@ from flask_restplus import Api, Resource, fields
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from settings import *
-from models import *
-from ma import *
+from .settings import *
+from .models import *
+from .ma import *
 
 
 
@@ -36,7 +36,7 @@ student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
 
 instructor_schema = InstructorSchema()
-instructor_schema = InstructorSchema(many=True)
+instructors_schema = InstructorSchema(many=True)
 
 course_schema = CourseSchema()
 course_schema = CourseSchema(many=True)
