@@ -5,9 +5,9 @@ from flask_restplus import Api, Resource, fields
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .settings import *
-from .models import *
-from .ma import *
+from settings import *
+from models import *
+from ma import *
 
 
 
@@ -115,6 +115,10 @@ class studentsResources(Resource):
 @StudentNamespace.route('/studentbyemail/<int:studentEmail>')
 class studentsResourcesOne(Resource):
     def get(self,studentEmail):
+        '''
+        Get Student Info Using Email
+        '''
+
         return
 
 #############################################
