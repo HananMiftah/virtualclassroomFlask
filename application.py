@@ -298,15 +298,16 @@ class coursesResource(Resource):
        
 
 
-@CourseNamespace.route('<int:courseID/student/<int:studentID>')
-class deleteStudent(Resource):
+@CourseNamespace.route('/<int:courseID>/student/<int:studentID>')
+class deleteStudentResource(Resource):
     def delete(self,courseID,studentID):
         c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
         if not c:
             return 'Student Not Registered in this course', 400
-            
+
         db.session.delete()
         db.session.commit()
+        return "Successfully deleted ",200
 
 
 @CourseNamespace.route('/<int:courseID>')
@@ -410,14 +411,22 @@ class courseResourceFour(Resource):
 @CourseNamespace.route('/instructorcourses')
 class courseResourceFive(Resource):
     def get(self):
-        # TODO fetch real instructor Id
-        instructorId = get_jwt_identity()
+        instructor_id = 1
+        courses= Courses.query.filter_by(InstructorID=instructor_id).all()
+        lst =[]
 
-        courseLst = Courses(InstructorID = instructorId).all()
+        for course in courses:
+            a= COURSES()
+            c = Courses.query.filter_by(CourseID = course.CourseID).first()
+            a.CourseId = course.CourseID
+            a.CourseTitle = c.CourseTitle
+            a.CourseDescription = c.CourseDescription
+            a.InstructorID = c.InstructorID
+            lst.append(a)
+        return courses_schema.dump(lst)
 
-        # TODO create Schema
-        return courseLst
     
+
 #############################################
 '''
 CLASSROOM
@@ -428,10 +437,12 @@ CLASSROOM
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
         classRoom = VirtualClassrooms.query.get(classroomID)
+        if not classRoom:
+            return "ClassRoom Not Found", 404
+
         return json.dump(classRoom)
     
-    def patch(self,courseID,classroomID):
-        return
+
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
@@ -450,10 +461,11 @@ class classroomResourceOne(Resource):
         db.session.commit()
         return json.dump(new_classroom)
     
+
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
     def get(self,courseID,classroomID):
-        return
+        return 
 
 if __name__ == "__main__":
     app.run(debug=True)
