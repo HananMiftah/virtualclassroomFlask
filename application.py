@@ -1,5 +1,5 @@
 import re
-from flask import Flask, request
+from flask import Flask, request, flash
 from flask_marshmallow import Marshmallow
 from flask_restplus import Api, Resource, fields
 from flask_cors import CORS
@@ -23,16 +23,12 @@ ma = Marshmallow(app)
 
 api = Api(app, version='1.0', title='Virtual Classroom API',
           description='A simple Virtual Classroom API')
-autNS = api.namespace("Authentication")
-stuNS = api.namespace("Student")
-insNS = api.namespace("Instructor")
-resNS = api.namespace("Resource")
-couNS = api.namespace("Course")
-clsNS = api.namespace("Classroom")
 
 student_schema = StudentSchema()
 students_schema = StudentSchema(many=True)
 
+course_schema = CourseSchema()
+course_schema = CourseSchema(many=True)
 
 
 # Model required by flask_restplus for expect
@@ -49,7 +45,7 @@ AUTHENTICATION
 '''
 #############################################
 
-@autNS.route('/api/authenticate')
+@api.route('/api/authenticate')
 # @cross_origin()
 class authentication(Resource):
     def get(self):
@@ -60,7 +56,7 @@ class authentication(Resource):
 STUDENT
 '''
 #############################################
-@stuNS.route('/api/authenticate/students')
+@api.route('/api/authenticate/students')
 # @cross_origin()
 class studentsResource(Resource):
     def get(self):
@@ -70,45 +66,52 @@ class studentsResource(Resource):
         students = Students.query.all()
         return students_schema.dump(students)
 
-@stuNS.route('/api/authenticate/students/createstudent')
+@api.route('/api/authenticate/students/createstudent')
 class studentsResource(Resource):
     @api.expect(student)
     def post(self):
         '''
         Create a new Student
         '''
+        
         new_student = Students()
         new_student.FirstName = request.json['FirstName']
         new_student.LastName = request.json['LastName']
         new_student.Email = request.json['Email']
         new_student.Password = generate_password_hash(request.json['Password'], method='sha256')
 
+        student = Students.query.filter_by(Email=new_student.Email).first()
+        if student:
+            flash('This email is already registered!!!', 'error')
+            return 404
+
         db.session.add(new_student)
         db.session.commit()
         return student_schema.dump(new_student)
 
-@stuNS.route('/api/authenticate/students/<int:stuID>')
+@api.route('/api/authenticate/students/<int:stuID>')
 class studentResource(Resource):
     def get(self,stuID):
         '''
         Get Student Info
         '''
         student = Students.query.filter_by(StudentID=stuID).first()
-        print(student)
-        return student_schema.dump(student)
-    
+
+        if student:
+            returnstudent_schema.dump(student)
+        return 404
     def patch(self,stuID):
         '''
         Edit Student Info
         '''
         return
 
-@stuNS.route('/api/authenticate/students/studentbyemail')
+@api.route('/api/authenticate/students/studentbyemail')
 class studentsResources(Resource):
     def get(self):
         return
 
-@stuNS.route('/api/authenticate/students/studentbyemail/<int:studentEmail>')
+@api.route('/api/authenticate/students/studentbyemail/<int:studentEmail>')
 class studentsResourcesOne(Resource):
     def get(self,studentEmail):
         return
@@ -119,18 +122,18 @@ INSTRUCTOR
 '''
 #############################################
 
-@insNS.route('/api/authenticate/instructors')
+@api.route('/api/authenticate/instructors')
 class instructorsResource(Resource):
     def get(self):
         return
 
-@insNS.route('/api/authenticate/instructors/createinstructor')
+@api.route('/api/authenticate/instructors/createinstructor')
 class instructorsResource(Resource):
     def post(self):
         return 
 
 
-@insNS.route('/api/authenticate/instructors/<int:instructorID>')
+@api.route('/api/authenticate/instructors/<int:instructorID>')
 class instructorResource(Resource):
     def get(self,instructorID):
         return
@@ -143,7 +146,7 @@ class instructorResource(Resource):
 RESOURCE
 '''
 #############################################
-@resNS.route('/api/courses/<int:courseID>/Resources')
+@api.route('/api/courses/<int:courseID>/Resources')
 class resourcesResource(Resource):
     def get(self,courseID):
         return
@@ -151,7 +154,7 @@ class resourcesResource(Resource):
     def post(self,courseID):
         return
 
-@resNS.route('/api/courses/<int:courseID>/resources/<int:resourceID>')
+@api.route('/api/courses/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
     def get(self,courseID,resourceID):
         return
@@ -159,7 +162,7 @@ class resourceResource(Resource):
     def delete(self,courseID,resourceID):
         return
 
-@resNS.route('/api/courses/<int:courseID>/resources/<int:resourceID>/download')
+@api.route('/api/courses/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     def get(self,courseID,resourceID):
         return
@@ -169,12 +172,12 @@ class resourcesResourceOne(Resource):
 COURSE
 '''
 #############################################
-@couNS.route('/api/courses')
+@api.route('/api/courses')
 class coursesResource(Resource):
     def post(self):
         return
 
-@couNS.route('/api/courses/<int:courseID>')
+@api.route('/api/courses/<int:courseID>')
 class courseResource(Resource):
     def get(self,courseID):
         return
@@ -185,27 +188,27 @@ class courseResource(Resource):
     def patch(self,courseID):
         return
 
-@couNS.route('/api/courses/<int:courseID>/student/<int:ids>')
+@api.route('/api/courses/<int:courseID>/student/<int:ids>')
 class courseResourceOne(Resource):
     def get(self,courseID,ids):
         return
     
-@couNS.route('/api/courses/<int:courseID>/students')
+@api.route('/api/courses/<int:courseID>/students')
 class courseResourceTwo(Resource):
     def get(self,courseID):
         return
 
-@couNS.route('/api/courses/studentcourses')
+@api.route('/api/courses/studentcourses')
 class courseResourceThree(Resource):
     def get(self):
         return
 
-@couNS.route('/api/courses/studentcourses/<int:courseID>')
+@api.route('/api/courses/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
     def get(self,courseID):
         return
 
-@couNS.route('/api/courses/instructorcourses')
+@api.route('/api/courses/instructorcourses')
 class courseResourceFive(Resource):
     def get(self):
         return
@@ -216,7 +219,7 @@ CLASSROOM
 '''
 #############################################
 
-@clsNS.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>')
+@api.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
         return
@@ -224,7 +227,7 @@ class classroomResource(Resource):
     def patch(self,courseID,classroomID):
         return
 
-@clsNS.route('/api/courses/<int:courseID>/classrooms')
+@api.route('/api/courses/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
         return
@@ -232,7 +235,7 @@ class classroomResourceOne(Resource):
     def post(self,courseID):
         return
     
-@clsNS.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>/join')
+@api.route('/api/courses/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
     def get(self,courseID,classroomID):
         return
