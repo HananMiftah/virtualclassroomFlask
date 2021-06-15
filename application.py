@@ -1,25 +1,31 @@
 import re
 from flask import Flask, request, flash
 from flask_marshmallow import Marshmallow
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api, Resource, fields,reqparse
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .settings import *
-from .models import *
-from .ma import *
+from settings import *
+from models import *
+from ma import *
 import json
-
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import ( create_access_token, get_jwt,
+                            jwt_required, get_jwt_identity)
+from datetime import timedelta
 
 
 app = Flask(__name__)
 CORS(app)
-
+jwt=JWTManager(app)
 db_uri = SQLALCHEMY_DATABASE_URI
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
+app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['JWT_SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['JWT_BLACKLIST_ENABLED'] = ['access']
 app.debug = True
 
 db.init_app(app)
@@ -67,11 +73,59 @@ AUTHENTICATION
 '''
 #############################################
 
+AuthenticationNamespace = api.namespace("Authentication", path="/api/authenticate")
+
+user_auth_arguments = reqparse.RequestParser()
+user_auth_arguments.add_argument('username', type=str, help="Username", required=True)
+user_auth_arguments.add_argument('password', type=str, help="Password", required=True)
+
+userCred = api.model("UserCred", {
+    'UserName': fields.String(),
+    'Password': fields.String() 
+})
+
 @AuthenticationNamespace.route('')
 # @cross_origin()
+
 class authentication(Resource):
-    def get(self):
-        return 
+    @api.expect(userCred)
+    def post(self):
+        print("\n\n\nhere\n\n\n")
+        # args = user_auth_arguments.parse_args()
+        username = request.json['UserName']
+        password = request.json['Password']
+        print("\n\n\nhere\n\n\n")
+
+        user=Students.query.filter_by(Email=username).first()
+        role="Student"
+        print("\n\n\1\n\n\n")
+
+        if user and  check_password_hash(user.Password , password):
+            print("\n\n\2\n\n\n")
+            
+            expires = timedelta(days=30)
+            additional_claims = {"role": role}
+            token = create_access_token(
+                identity=user.StudentID, 
+                expires_delta=expires,
+                additional_claims=additional_claims)
+            return {'token': token}
+        user=Instructors.query.filter_by(Email=username).first()
+        role="Instrucotr"
+        print("\n\n\3\n\n\n")
+
+        if user and  check_password_hash(user.Password , password):
+            print("\n\n\4\n\n\n")
+
+            expires = timedelta(days=30)
+            additional_claims = {"role": role}
+            token = create_access_token(
+                identity=user.InstructorID, 
+                expires_delta=expires,
+                additional_claims=additional_claims)
+            return {'token': token}
+        return "Incorrect Username or password" ,401
+
 
 #############################################
 '''
@@ -259,7 +313,7 @@ class classroomResourceOne(Resource):
         classrooms = VirtualClassrooms.query.all()
         return {"Data": "Success"}
     
-    @api.expect(classroom)
+    # @api.expect(classroom)
     def post(self,courseID):
         new_classroom = VirtualClassrooms()
         new_classroom.ClassroomName = request.json['ClassroomName']
