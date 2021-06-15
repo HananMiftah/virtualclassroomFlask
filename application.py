@@ -8,15 +8,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from .settings import *
 from .models import *
 from .ma import *
+import json
 
 
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+db_uri = SQLALCHEMY_DATABASE_URI
+if db_uri.startswith("postgres://"):
+    db_uri = db_uri.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = SQLALCHEMY_TRACK_MODIFICATIONS
-
+app.debug = True
 
 db.init_app(app)
 ma = Marshmallow(app)
@@ -243,7 +247,8 @@ CLASSROOM
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        return
+        classRoom = VirtualClassrooms.query.get(classroomID)
+        return json.dump(classRoom)
     
     def patch(self,courseID,classroomID):
         return
@@ -251,10 +256,19 @@ class classroomResource(Resource):
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
-        return
+        classrooms = VirtualClassrooms.query.all()
+        return {"Data": "Success"}
     
+    @api.expect(classroom)
     def post(self,courseID):
-        return
+        new_classroom = VirtualClassrooms()
+        new_classroom.ClassroomName = request.json['ClassroomName']
+        new_classroom.CourseID = courseID
+        new_classroom.URL = request.json['URL']
+
+        db.session.add(new_classroom)
+        db.session.commit()
+        return json.dump(new_classroom)
     
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
