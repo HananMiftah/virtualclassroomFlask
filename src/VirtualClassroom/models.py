@@ -20,6 +20,7 @@ class Instructors(db.Model):
     FirstName = db.Column(db.String, nullable=False)
     LastName = db.Column(db.String, nullable=True)
     Email = db.Column(db.String, nullable=False)
+    Courses = db.relationship('Course', backref='instructor', lazy=True)
 
 
 class Courses(db.Model):
@@ -29,6 +30,8 @@ class Courses(db.Model):
         "instructors.InstructorID"), nullable=False)
     CourseTitle = db.Column(db.String, nullable=False)
     CourseDescription = db.Column(db.String, nullable=True)
+    ClassRooms = db.relationship('VirtualClassrooms', backref='Course', lazy=True)
+
 
 class CourseStudents(db.Model):
     __tablename__ = "coursestudents"
@@ -45,6 +48,8 @@ class Resources(db.Model):
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
     CreationDate = db.Column(db.DateTime, nullable=False)
+    Course = db.relationship('Courses', backref='resources', lazy=True)
+
 
 class VirtualClassrooms(db.Model):
     __tablename__ = "virtualclassrooms"
@@ -53,6 +58,8 @@ class VirtualClassrooms(db.Model):
     URL = db.Column(db.String, nullable=False)
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
+    
+    
  
 class ClassroomStudents(db.Model):
     __tablename__ = "classroomstudents"
