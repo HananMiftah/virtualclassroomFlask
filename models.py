@@ -1,3 +1,4 @@
+import datetime
 from flask_restplus.fields import ClassName
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -56,7 +57,7 @@ class VirtualClassrooms(db.Model):
     __tablename__ = "virtualclassrooms"
     ClassroomID = db.Column(db.Integer, primary_key=True)
     ClassroomName = db.Column(db.String, nullable=False)
-    URL = db.Column(db.String, nullable=False)
+    Date = db.Column(db.DateTime)
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
     
