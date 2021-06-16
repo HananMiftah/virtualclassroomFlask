@@ -29,6 +29,8 @@ resource_schema = ResourceSchema()
 
 @ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
+    @jwt_required()
+
     def post(self,courseID):
         # saving the file to the server
         fileType = request.headers['Content-Type'].split("/")[1]
@@ -55,6 +57,8 @@ class resourcesResource(Resource):
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
+    @jwt_required()
+
     def get(self,courseID,resourceID):
         file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
         if file:
@@ -71,6 +75,8 @@ class resourceResource(Resource):
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
+    @jwt_required()
+
     def get(self,courseID,resourceID):
         file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
         if file:

@@ -94,6 +94,6 @@ class classroomResourceOne(Resource):
     
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
-
+    @jwt_required()
     def get(self,courseID,classroomID):
         return
