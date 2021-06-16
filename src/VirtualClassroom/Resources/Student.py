@@ -2,6 +2,8 @@ import re
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
 from flask import Flask, request, flash
+from marshmallow import fields, Schema, validate, validates, ValidationError
+
 from flask_marshmallow import Marshmallow
 from flask_restplus import Resource, fields,reqparse,abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -39,7 +41,13 @@ class Student(Resource):
         '''
         Create a new Student
         '''
-        
+        data = request.get_json()
+        try:
+            args = student_schema.load(data)
+        except ValidationError as errors:
+            return errors.messages , 400
+
+
         new_student = Students()
         new_student.FirstName = request.json['FirstName']
         new_student.LastName = request.json['LastName']
@@ -54,13 +62,14 @@ class Student(Resource):
         db.session.commit()
         return student_schema.dump(new_student), 201
 
+
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
-    def get(self,studentId):
+    def get(self,stuID):
         '''
         Get Student Info
         '''
-        student = Students.query.filter_by(StudentID=studentId).first()
+        student = Students.query.filter_by(StudentID=stuID).first()
 
         if student:
             return student_schema.dump(student)
