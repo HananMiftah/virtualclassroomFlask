@@ -66,6 +66,10 @@ class ClassroomSchema(ma.Schema):
         fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
         model=VirtualClassrooms
 
+class ResourceSchema(ma.Schema):
+    class Meta:
+        fields = ("ResourceID", "FileName", "CreationDate")
+        model = Resources
 class ClassroomStudentSchema(ma.Schema):
     class Meta:
         fields =("name","id","email")
