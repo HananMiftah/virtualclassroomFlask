@@ -17,6 +17,9 @@ from VirtualClassroom import db
 CourseNamespace = api.namespace("Course", path="/courses")
 
 
+studentList_schema = StudentListSchema()
+studentLists_schema = StudentListSchema(many=True)
+
 course_schema = CourseSchema()
 courses_schema = CourseSchema(many=True)
 
@@ -128,7 +131,7 @@ class courseResourceTwo(Resource):
 
 
         # TODO : Create Schema
-        return studentList_schema.dump(students)
+        return studentLists_schema.dump(students)
 
     # def post(self,courseID):
 
