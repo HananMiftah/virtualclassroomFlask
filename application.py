@@ -9,14 +9,16 @@ from flask_jwt_extended import (get_jwt_identity)
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from settings import *
-from models import *
-from ma import *
+from .settings import *
+from .models import *
+from .ma import *
 import json
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
+import datetime
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -93,6 +95,13 @@ instructor = api.model("Instructors", {
     'LastName': fields.String(),
     'Email': fields.String(),
     'Password': fields.String(),
+})
+
+classroom = api.model("Virtualclassrooms",{
+    'ClassroomName': fields.String(),
+    'Date': fields.String(),
+    'StartTime': fields.String(),
+    'EndTime': fields.String()
 })
 
 #############################################
@@ -431,30 +440,59 @@ CLASSROOM
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        classroom = VirtualClassrooms.query.filter_by(ClassroomID=courseID, CourseID=courseID).first()
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
         if not classroom:
             return "Classroom Not Found", 404
         return classroom_schema.dump(classroom), 200
     
-    def patch(self,courseID,classroomID):
-        return
+    def delete(self,courseID,classroomID):
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
+        if not classroom:
+            return "Classroom not found", 404
+        db.session.delete(classroom)
+        db.session.commit()
+        return "Successfully deleted",204
+
+@ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/attendance')
+class classroomResource(Resource):
+    def get(self,courseID,classroomID):
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
+        if not classroom:
+            return "Classroom Not Found", 404
+        class_stu = ClassroomStudents.query.filter_by(ClassroomID=classroomID).all()
+        students=[]
+        for stu in class_stu:
+            student = StudentListSchema()
+            s = Students.query.filter_by(StudentID = stu.StudentID).first()
+            student.name= s.FirstName + " " + s.LastName
+            student.email = s.Email
+            student.id = s.StudentID
+            students.append(student)
+
+
+        return studentList_schema.dump(students)
+    
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
         classrooms = VirtualClassrooms.query.all()
-        return {"Data": "Success"}
+        if not classrooms:
+            return "No classrooms available"
+        return classrooms_schema.dump(classrooms), 200
     
-    # @api.expect(classroom)
+    @api.expect(classroom)
     def post(self,courseID):
         new_classroom = VirtualClassrooms()
         new_classroom.ClassroomName = request.json['ClassroomName']
         new_classroom.CourseID = courseID
-        new_classroom.URL = request.json['URL']
+        new_classroom.Date = datetime.strptime(request.json['Date'],"%d/%m/%y").strftime('%d/%m/%y')
+        new_classroom.StartTime = request.json['StartTime']
+        new_classroom.EndTime = request.json['EndTime']
 
         db.session.add(new_classroom)
         db.session.commit()
-        return json.dump(new_classroom)
+        return classroom_schema.dump(new_classroom),201
     
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
