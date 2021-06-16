@@ -1,19 +1,18 @@
 import re
-from flask import Flask, request, flash, Blueprint
-from flask_marshmallow import Marshmallow
-from flask_restplus import Api, Resource, fields
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint
+from flask_restplus import Api
 from VirtualClassroom.config import *
 from VirtualClassroom.schemas import *
 from VirtualClassroom.models import *
-import json
 
 
 def init_api():
     from VirtualClassroom.Resources.classroom import ClassroomNamspace
     from VirtualClassroom.Resources.Authentication import AuthenticationNamespace
-
+    from VirtualClassroom.Resources.Student import StudentNamespace
+    from VirtualClassroom.Resources.Instructor import InstructorsNamespace
+    from VirtualClassroom.Resources.Course import CourseNamespace
+    
 
 blueprint = Blueprint('api_v1', __name__)
 
