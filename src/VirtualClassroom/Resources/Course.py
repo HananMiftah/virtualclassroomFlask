@@ -1,3 +1,4 @@
+# from ma import AddStudentSchema
 import re
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
@@ -16,6 +17,8 @@ from VirtualClassroom import db
 
 CourseNamespace = api.namespace("Course", path="/courses")
 
+
+add_student_schema = AddStudentSchema()
 
 studentList_schema = StudentListSchema()
 studentLists_schema = StudentListSchema(many=True)
@@ -64,7 +67,7 @@ class deleteStudent(Resource):
         if not c:
             return 'Student Not Registered in this course', 400
             
-        db.session.delete()
+        db.session.delete(c)
         db.session.commit()
 
 
@@ -84,7 +87,7 @@ class courseResource(Resource):
     @api.expect(courseStudents)
     @jwt_required()
     def post(self,courseID):
-        
+        print()
         student = CourseStudents.query.filter_by(StudentID = request.json['StudentID'], CourseID= courseID).first()
         if student:
             abort(400, message="Student Already Registered")

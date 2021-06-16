@@ -104,7 +104,7 @@ class StudentListSchema(ma.Schema):
 
 class ClassroomSchema(ma.Schema):
     class Meta:
-        fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
+        fields =("ClassroomName","Date","StartTime","EndTime","CourseID","ClassroomID")
         model=VirtualClassrooms
 
 class ClassroomStudentSchema(ma.Schema):

@@ -1,5 +1,6 @@
 
 import re
+# from settings import UPLOAD_FOLDER
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
 from marshmallow import fields, Schema, validate, validates, ValidationError
@@ -16,10 +17,13 @@ from flask_jwt_extended import ( create_access_token, get_jwt,
 from datetime import timedelta
 from VirtualClassroom import db
 import os
+import uuid
 
 ResourceNamespace = api.namespace("Resource", path="/courses")
 
 resource_schema = ResourceSchema()
+
+upload_folder = ''
 
 
 
@@ -29,8 +33,8 @@ resource_schema = ResourceSchema()
 
 @ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
-    @jwt_required()
 
+    @jwt_required()
     def post(self,courseID):
         # saving the file to the server
         fileType = request.headers['Content-Type'].split("/")[1]
