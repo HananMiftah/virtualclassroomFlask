@@ -186,11 +186,11 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
-    def get(self,studentId):
+    def get(self,stuID):
         '''
         Get Student Info
         '''
-        student = Students.query.filter_by(StudentID=studentId).first()
+        student = Students.query.filter_by(StudentID=stuID).first()
 
         if student:
             return student_schema.dump(student)
@@ -244,7 +244,11 @@ class instructorsResource(Resource):
 @InstructorsNamespace.route('/<int:instructorID>')
 class instructorResource(Resource):
     def get(self,instructorID):
-        return
+        instructor = Instructors.query.filter_by(InstructorID=instructorID).first()
+
+        if instructor:
+            return student_schema.dump(instructor)
+        return "Instructor not found",404
     
     def patch(self,instructorID):
         return
