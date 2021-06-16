@@ -24,6 +24,7 @@ import os,uuid
 ResourceNamespace = api.namespace("Resource", path="/course")
 
 resource_schema = ResourceSchema()
+resources_schema = ResourceSchema(many=True)
 
 upload_folder = 'static'
 
@@ -39,19 +40,17 @@ class resourcesResource(Resource):
     @jwt_required()
     def post(self,courseID):
         # saving the file to the server
-        fileType = request.headers['Content-Type'].split("/")[1]
         contentType = request.headers['Content-Type']
-        fileName = request.headers['File-Name'] #TODO
 
         randomfileName = str(uuid.uuid4())
-        with open(os.path.join(upload_folder, randomfileName+"."+fileType), "wb") as fp:
-            fp.write(request.data)
+        with open(os.path.join(upload_folder, randomfileName), "wb") as fp:
+            fp.write(request.files['file'].stream.read())
 
         # saving the file's metadata to database
         new_resource = Resources()
         new_resource.FilePath = upload_folder
-        new_resource.FileName = fileName +"."+ fileType
-        new_resource.RandomFileName = randomfileName +"."+ fileType
+        new_resource.FileName = request.files['file'].filename
+        new_resource.RandomFileName = randomfileName
         new_resource.ContentType = contentType
         new_resource.CourseID = int(courseID)
         new_resource.CreationDate = datetime.now()
@@ -60,6 +59,12 @@ class resourcesResource(Resource):
         db.session.commit()
         
         return {'resourceID':new_resource.ResourceID}, 201
+    @jwt_required()
+    def get(self,courseID):
+        file = Resources.query.filter_by(CourseID=courseID).all()
+        if file:
+            return resources_schema.dump(file), 200
+        return 'Resource not found', 404
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
@@ -82,9 +87,9 @@ class resourceResource(Resource):
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     @jwt_required()
-
     def get(self,courseID,resourceID):
         file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        print(file.FileName)
         if file:
             try:
                 filePath = file.FilePath
@@ -98,4 +103,6 @@ class resourcesResourceOne(Resource):
                 return response
             except:
                 return 'Resource not found', 404
+            
+        
         return 'Resource not found', 404

@@ -158,7 +158,7 @@ class courseResourceThree(Resource):
         for course in courses:
             a= COURSES()
             c = Courses.query.filter_by(CourseID = course.CourseID).first()
-            a.CourseId = course.CourseID
+            a.CourseID = c.CourseID
             a.CourseTitle = c.CourseTitle
             a.CourseDescription = c.CourseDescription
             a.InstructorID = c.InstructorID
@@ -174,7 +174,10 @@ class courseResourceFour(Resource):
         student_id = get_jwt_identity()
         course= CourseStudents.query.filter_by(StudentID=student_id, CourseID=courseID).first()
         if course:
-            return Courses.query.filter_by(courseID = courseID).first()
+            a = Courses.query.filter_by(CourseID = courseID).first()
+            print("CID")
+            print(a.CourseID)
+            return course_schema.dump(a)
         return abort(404, 'Student Not enrolled')
 
 @CourseNamespace.route('/instructorcourses')

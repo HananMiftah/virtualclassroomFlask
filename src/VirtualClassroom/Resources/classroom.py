@@ -88,7 +88,7 @@ class classroomResourceOne(Resource):
         # new_classroom.URL = "url"
         print("\n")
         print(request.json['Date'])
-        new_classroom.Date = datetime.strptime(request.json['Date'],"%d/%m/%y")
+        new_classroom.Date = datetime.strptime(request.json['Date'],'%Y-%m-%dT%H:%M:%S.%fZ')
         new_classroom.StartTime = request.json['StartTime']
         new_classroom.EndTime = request.json['EndTime']
 
