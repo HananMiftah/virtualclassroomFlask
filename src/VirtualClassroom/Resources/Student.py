@@ -65,6 +65,7 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
+    @jwt_required()
     def get(self,stuID):
         '''
         Get Student Info
@@ -75,6 +76,7 @@ class studentResource(Resource):
             return student_schema.dump(student)
         return "Student not found",404
     @api.expect(student)
+    @jwt_required()
     def patch(self,studentId):
         '''
         Edit Student Info
@@ -94,3 +96,16 @@ class studentResource(Resource):
         return student_schema.dump(student), 200
 
 
+@StudentNamespace.route('/studentByEmail/<string:email>')
+class StudentByEmail(Resource):
+    @jwt_required()
+
+    def get(self,email):
+        '''
+        Get Student Info
+        '''
+        student = Students.query.filter_by(Email=email).first()
+
+        if student:
+            return student_schema.dump(student)
+        return abort(404, "Student not found")

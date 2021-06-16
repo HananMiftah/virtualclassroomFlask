@@ -15,7 +15,8 @@ class StudentSchema(ma.Schema):
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
-    Password = fields.String(required=True, load_only=True, data_key="Password")
+    Password = fields.String(required=True, load_only=True)
+
     
     
     @validates("Email")
@@ -101,3 +102,18 @@ class StudentListSchema(ma.Schema):
     name = fields.Email(required=True)
 
 
+class ClassroomSchema(ma.Schema):
+    class Meta:
+        fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
+        model=VirtualClassrooms
+
+class ClassroomStudentSchema(ma.Schema):
+    class Meta:
+        fields =("name","id","email")
+        model=STUDENTLIST
+
+
+class ResourceSchema(ma.Schema):
+    class Meta:
+        fields = ("ResourceID", "FileName", "CreationDate")
+        model = Resources

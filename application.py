@@ -561,6 +561,9 @@ class classroomResourceOne(Resource):
         new_classroom.Date = datetime.strptime(request.json['Date'],"%d/%m/%y").strftime('%d/%m/%y')
         new_classroom.StartTime = request.json['StartTime']
         new_classroom.EndTime = request.json['EndTime']
+        course =Courses.query.get(courseID)
+        if course == None:
+            return "Course does not exist",404
 
         db.session.add(new_classroom)
         db.session.commit()

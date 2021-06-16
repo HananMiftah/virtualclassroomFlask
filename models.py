@@ -71,6 +71,6 @@ class ClassroomStudents(db.Model):
     __tablename__ = "classroomstudents"
     ID = db.Column(db.Integer, primary_key=True)
     ClassroomID = db.Column(db.Integer, db.ForeignKey(
-        "virtualclassrooms.ClassroomID"), nullable=False)
+        "virtualclassrooms.ClassroomID"), nullable=False, primary_key=True)
     StudentID = db.Column(db.Integer, db.ForeignKey(
-        "students.StudentID"), nullable=False)
+        "students.StudentID"), nullable=False , primary_key=True)

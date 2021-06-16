@@ -40,6 +40,7 @@ course = api.model("Courses", {
 class coursesResource(Resource):
     @jwt_required()
     @api.expect(course)
+    @jwt_required()
     def post(self):
        new_course = Courses()
        new_course.InstructorID = request.json['InstructorID']
@@ -57,6 +58,7 @@ class coursesResource(Resource):
 
 @CourseNamespace.route('/<int:courseID>/student/<int:studentID>')
 class deleteStudent(Resource):
+    @jwt_required()
     def delete(self,courseID,studentID):
         c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
         if not c:
@@ -67,6 +69,7 @@ class deleteStudent(Resource):
 
 
 @CourseNamespace.route('/<int:courseID>')
+
 class courseResource(Resource):
     @jwt_required()
     def get(self,courseID):
@@ -79,6 +82,7 @@ class courseResource(Resource):
         return course_schema.dump(result)
     
     @api.expect(courseStudents)
+    @jwt_required()
     def post(self,courseID):
         
         student = CourseStudents.query.filter_by(StudentID = request.json['StudentID'], CourseID= courseID).first()
@@ -101,6 +105,7 @@ class courseResource(Resource):
     
 @CourseNamespace.route('/student/<int:courseID>')
 class courseResourceOne(Resource):
+    @jwt_required()
     def get(self,courseID):
         studentID = get_jwt_identity()
         course = Courses.query.filter_by(CourseID= courseID).first()
@@ -118,6 +123,7 @@ class courseResourceOne(Resource):
     # LIST OF STUDENTS IN A COURSE
 @CourseNamespace.route('/<int:courseID>/students')
 class courseResourceTwo(Resource):
+    @jwt_required()
     def get(self,courseID):
         courses = CourseStudents.query.filter_by(CourseID = courseID).all()
         students=[]
@@ -139,6 +145,7 @@ class courseResourceTwo(Resource):
 # A STUDENTS LIST OF COURSES
 @CourseNamespace.route('/studentcourses')
 class courseResourceThree(Resource):
+    @jwt_required()
     def get(self):
         # TODO fetch real student Id
         student_id = get_jwt_identity()

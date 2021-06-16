@@ -16,8 +16,6 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.register_blueprint(blueprint, url_prefix='/api')
     app.config.from_object(Config)
-
-
     jwt=JWTManager(app)
     cors.init_app(app,allow_headers='*')
     db.init_app(app)

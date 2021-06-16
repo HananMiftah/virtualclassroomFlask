@@ -35,7 +35,6 @@ instructor = api.model("Instructors", {
 
 @InstructorsNamespace.route('/createinstructor')
 class instructorsResource(Resource):
-    @api.expect(instructor)
     def post(self):
 
         data = request.get_json()
@@ -63,6 +62,7 @@ class instructorsResource(Resource):
 
 @InstructorsNamespace.route('/<int:instructorID>')
 class instructorResource(Resource):
+    @jwt_required()
     def get(self,instructorID):
         instructor = Instructors.query.filter_by(StudentID=instructorID).first()
 
@@ -70,7 +70,7 @@ class instructorResource(Resource):
             return student_schema.dump(instructor)
         return "Instructor not found",404
         
-    
+    @jwt_required()
     def patch(self,instructorID):
         return
 
