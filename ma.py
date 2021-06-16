@@ -2,7 +2,7 @@ from flask_marshmallow import Marshmallow
 from flask_restplus import fields
 from flask_restplus.inputs import email
 from flask_sqlalchemy import model
-from models import *
+from .models import *
 
 ma = Marshmallow()
 
@@ -63,10 +63,14 @@ class StudentListSchema(ma.Schema):
 
 class ClassroomSchema(ma.Schema):
     class Meta:
-        fields =("ClassroomName","Date","CourseID","ClassRoomID")
+        fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
         model=VirtualClassrooms
 
 class ResourceSchema(ma.Schema):
     class Meta:
         fields = ("ResourceID", "FileName", "CreationDate")
         model = Resources
+class ClassroomStudentSchema(ma.Schema):
+    class Meta:
+        fields =("name","id","email")
+        model=STUDENTLIST
