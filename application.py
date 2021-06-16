@@ -1,5 +1,8 @@
 import re
-from flask import Flask, request, flash
+import os
+import uuid
+import datetime
+from flask import Flask, request, flash, make_response
 from flask_marshmallow import Marshmallow
 from flask_restplus import Api, Resource, fields,reqparse
 from flask_cors import CORS
@@ -23,6 +26,8 @@ app = Flask(__name__)
 CORS(app)
 jwt=JWTManager(app)
 db_uri = SQLALCHEMY_DATABASE_URI
+upload_folder = UPLOAD_FOLDER
+
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
@@ -62,6 +67,8 @@ classroom_schema = ClassroomSchema()
 classrooms_schema = ClassroomSchema(many=True)
 
 studentList_schema = StudentListSchema(many=True)
+
+resource_schema = ResourceSchema()
 
 
 # Model required by flask_restplus for expect
@@ -261,26 +268,67 @@ class instructorResource(Resource):
 RESOURCE
 '''
 #############################################
-@ResourceNamespace.route('/<int:courseID>/Resources')
+@ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
-    def get(self,courseID):
-        return
-
     def post(self,courseID):
-        return
+        # saving the file to the server
+        fileType = request.headers['Content-Type'].split("/")[1]
+        contentType = request.headers['Content-Type']
+        fileName = request.headers['File-Name'] #TODO
+
+        randomfileName = str(uuid.uuid4())
+        with open(os.path.join(upload_folder, randomfileName+"."+fileType), "wb") as fp:
+            fp.write(request.data)
+
+        # saving the file's metadata to database
+        new_resource = Resources()
+        new_resource.FilePath = upload_folder
+        new_resource.FileName = fileName +"."+ fileType
+        new_resource.RandomFileName = randomfileName +"."+ fileType
+        new_resource.ContentType = contentType
+        new_resource.CourseID = int(courseID)
+        new_resource.CreationDate = datetime.now()
+
+        db.session.add(new_resource)
+        db.session.commit()
+        
+        return {'resourceID':new_resource.ResourceID}, 201
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
     def get(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            return resource_schema.dump(file), 200
+        return '', 404
     
     def delete(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+            return '',200
+        return {"message": "File not found"}, 404
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     def get(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            try:
+                filePath = file.FilePath
+                randomFileName = file.RandomFileName
+                fileContent = None
+
+                with open(os.path.join(filePath, randomFileName), "rb") as fp:
+                    fileContent = fp.read()
+                response = make_response(fileContent)
+                response.headers.set('Content-Type', file.ContentType)
+                return response
+            except:
+                return '', 404
+        
+        return '', 404
 
 #############################################
 '''

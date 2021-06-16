@@ -47,6 +47,8 @@ class Resources(db.Model):
     ResourceID = db.Column(db.Integer, primary_key=True)
     FilePath = db.Column(db.String, nullable=False)
     FileName = db.Column(db.String, nullable=False)
+    RandomFileName = db.Column(db.String, nullable=False)
+    ContentType = db.Column(db.String, nullable=False)
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
     CreationDate = db.Column(db.DateTime, nullable=False)

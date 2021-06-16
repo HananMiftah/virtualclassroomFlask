@@ -65,3 +65,8 @@ class ClassroomSchema(ma.Schema):
     class Meta:
         fields =("ClassroomName","Date","CourseID","ClassRoomID")
         model=VirtualClassrooms
+
+class ResourceSchema(ma.Schema):
+    class Meta:
+        fields = ("ResourceID", "FileName", "CreationDate")
+        model = Resources
