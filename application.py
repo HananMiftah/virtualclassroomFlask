@@ -1,5 +1,8 @@
 import re
-from flask import Flask, request, flash
+import os
+import uuid
+import datetime
+from flask import Flask, request, flash, make_response
 from flask_marshmallow import Marshmallow
 from flask_restplus import Api, Resource, fields,reqparse
 from flask_cors import CORS
@@ -17,12 +20,16 @@ from flask_jwt_extended import JWTManager
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
+import datetime
+from datetime import datetime
 
 
 app = Flask(__name__)
 CORS(app)
 jwt=JWTManager(app)
 db_uri = SQLALCHEMY_DATABASE_URI
+upload_folder = UPLOAD_FOLDER
+
 if db_uri.startswith("postgres://"):
     db_uri = db_uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
@@ -63,6 +70,8 @@ classrooms_schema = ClassroomSchema(many=True)
 
 studentList_schema = StudentListSchema(many=True)
 
+resource_schema = ResourceSchema()
+
 
 # Model required by flask_restplus for expect
 student = api.model("Students", {
@@ -94,11 +103,14 @@ instructor = api.model("Instructors", {
     'Email': fields.String(),
     'Password': fields.String(),
 })
-classroom = api.model("VirtualClassrooms", {
+
+classroom = api.model("Virtualclassrooms",{
     'ClassroomName': fields.String(),
-    'Date': fields.DateTime(),
-    'CourseID': fields.String(),
+    'Date': fields.String(),
+    'StartTime': fields.String(),
+    'EndTime': fields.String()
 })
+
 #############################################
 '''
 AUTHENTICATION
@@ -221,6 +233,19 @@ class studentResource(Resource):
 
         return student_schema.dump(student), 200
 
+
+@StudentNamespace.route('/studentByEmail/<string:email>')
+class StudentByEmail(Resource):
+    def get(self,email):
+        '''
+        Get Student Info
+        '''
+        student = Students.query.filter_by(Email=email).first()
+
+        if student:
+            return student_schema.dump(student)
+        return abort(404, "Student not found")
+
 #############################################
 '''
 INSTRUCTOR
@@ -265,26 +290,67 @@ class instructorResource(Resource):
 RESOURCE
 '''
 #############################################
-@ResourceNamespace.route('/<int:courseID>/Resources')
+@ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
-    def get(self,courseID):
-        return
-
     def post(self,courseID):
-        return
+        # saving the file to the server
+        fileType = request.headers['Content-Type'].split("/")[1]
+        contentType = request.headers['Content-Type']
+        fileName = request.headers['File-Name'] #TODO
+
+        randomfileName = str(uuid.uuid4())
+        with open(os.path.join(upload_folder, randomfileName+"."+fileType), "wb") as fp:
+            fp.write(request.data)
+
+        # saving the file's metadata to database
+        new_resource = Resources()
+        new_resource.FilePath = upload_folder
+        new_resource.FileName = fileName +"."+ fileType
+        new_resource.RandomFileName = randomfileName +"."+ fileType
+        new_resource.ContentType = contentType
+        new_resource.CourseID = int(courseID)
+        new_resource.CreationDate = datetime.now()
+
+        db.session.add(new_resource)
+        db.session.commit()
+        
+        return {'resourceID':new_resource.ResourceID}, 201
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
     def get(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            return resource_schema.dump(file), 200
+        return '', 404
     
     def delete(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+            return '',200
+        return {"message": "File not found"}, 404
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     def get(self,courseID,resourceID):
-        return
+        file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        if file:
+            try:
+                filePath = file.FilePath
+                randomFileName = file.RandomFileName
+                fileContent = None
+
+                with open(os.path.join(filePath, randomFileName), "rb") as fp:
+                    fileContent = fp.read()
+                response = make_response(fileContent)
+                response.headers.set('Content-Type', file.ContentType)
+                return response
+            except:
+                return '', 404
+        
+        return '', 404
 
 #############################################
 '''
@@ -446,29 +512,59 @@ CLASSROOM
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        classroom = VirtualClassrooms.query.filter_by(ClassroomID=courseID, CourseID=courseID).first()
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
         if not classroom:
             return "Classroom Not Found", 404
         return classroom_schema.dump(classroom), 200
     
+    def delete(self,courseID,classroomID):
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
+        if not classroom:
+            return "Classroom not found", 404
+        db.session.delete(classroom)
+        db.session.commit()
+        return "Successfully deleted",204
 
+@ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/attendance')
+class classroomResource(Resource):
+    def get(self,courseID,classroomID):
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
+        if not classroom:
+            return "Classroom Not Found", 404
+        class_stu = ClassroomStudents.query.filter_by(ClassroomID=classroomID).all()
+        students=[]
+        for stu in class_stu:
+            student = StudentListSchema()
+            s = Students.query.filter_by(StudentID = stu.StudentID).first()
+            student.name= s.FirstName + " " + s.LastName
+            student.email = s.Email
+            student.id = s.StudentID
+            students.append(student)
+
+
+        return studentList_schema.dump(students)
+    
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
     def get(self,courseID):
         classrooms = VirtualClassrooms.query.all()
-        return {"Data": "Success"}
+        if not classrooms:
+            return "No classrooms available"
+        return classrooms_schema.dump(classrooms), 200
     
-    # @api.expect(classroom)
+    @api.expect(classroom)
     def post(self,courseID):
         new_classroom = VirtualClassrooms()
         new_classroom.ClassroomName = request.json['ClassroomName']
         new_classroom.CourseID = courseID
-        new_classroom.URL = request.json['URL']
+        new_classroom.Date = datetime.strptime(request.json['Date'],"%d/%m/%y").strftime('%d/%m/%y')
+        new_classroom.StartTime = request.json['StartTime']
+        new_classroom.EndTime = request.json['EndTime']
 
         db.session.add(new_classroom)
         db.session.commit()
-        return json.dump(new_classroom)
+        return classroom_schema.dump(new_classroom),201
     
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
