@@ -49,7 +49,7 @@ class Resources(db.Model):
     FileName = db.Column(db.String, nullable=False)
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
-    CreationDate = db.Column(db.DateTime, nullable=False)
+    CreationDate = db.Column(db.DateTime, nullable=False,default=datetime.utcnow)
     Course = db.relationship('Courses', backref='resources', lazy=True)
 
 
@@ -60,6 +60,8 @@ class VirtualClassrooms(db.Model):
     Date = db.Column(db.DateTime)
     CourseID = db.Column(db.Integer, db.ForeignKey(
         "courses.CourseID"), nullable=False)
+    StartTime = db.Column(db.String, nullable=False)
+    EndTime = db.Column(db.String, nullable=False)
     
     
  
