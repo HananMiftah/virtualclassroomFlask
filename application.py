@@ -9,9 +9,9 @@ from flask_jwt_extended import (get_jwt_identity)
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .settings import *
-from .models import *
-from .ma import *
+from settings import *
+from models import *
+from ma import *
 import json
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import ( create_access_token, get_jwt,

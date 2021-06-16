@@ -9,12 +9,14 @@ from .models import *
 class StudentSchema(ma.Schema):
     class Meta:
         ordered =True
-        fields = ("FirstName","LastName","Email", "StudentID")
+        fields = ("FirstName","LastName","Email", "StudentID","Password")
         model = Students
     StudentID=fields.Integer(data_key="userid")
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
+    Password = fields.String(required=True, load_only=True, data_key="password")
+
     
     
     @validates("Email")
@@ -35,6 +37,8 @@ class InstructorSchema(ma.Schema):
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
+    Password = fields.String(required=True, load_only=True, data_key="password")
+
     
     @validates("Email")
     def validate_username(self, Email):
@@ -99,3 +103,12 @@ class StudentListSchema(ma.Schema):
     name = fields.Email(required=True)
 
 
+class ClassroomSchema(ma.Schema):
+    class Meta:
+        fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
+        model=VirtualClassrooms
+
+class ClassroomStudentSchema(ma.Schema):
+    class Meta:
+        fields =("name","id","email")
+        model=STUDENTLIST

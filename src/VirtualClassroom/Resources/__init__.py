@@ -7,7 +7,7 @@ from VirtualClassroom.models import *
 
 
 def init_api():
-    from VirtualClassroom.Resources.classroom import ClassroomNamspace
+    from VirtualClassroom.Resources.Classroom import ClassroomNamspace
     from VirtualClassroom.Resources.Authentication import AuthenticationNamespace
     from VirtualClassroom.Resources.Student import StudentNamespace
     from VirtualClassroom.Resources.Instructor import InstructorsNamespace
