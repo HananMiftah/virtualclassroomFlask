@@ -4,7 +4,7 @@ import re
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
 from marshmallow import fields, Schema, validate, validates, ValidationError
-from flask import Flask, request, flash
+from flask import Flask, request, flash, make_response
 from flask_marshmallow import Marshmallow
 from flask_restplus import Resource, fields,reqparse,abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,18 +12,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from VirtualClassroom.Resources import api
 from VirtualClassroom.schemas import *
 from VirtualClassroom.models import *
+from VirtualClassroom.config import *
+
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
 from VirtualClassroom import db
-import os
-import uuid
+import os,uuid
 
-ResourceNamespace = api.namespace("Resource", path="/courses")
+
+ResourceNamespace = api.namespace("Resource", path="/course")
 
 resource_schema = ResourceSchema()
 
-upload_folder = ''
+upload_folder = 'static'
 
 
 

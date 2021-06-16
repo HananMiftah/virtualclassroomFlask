@@ -49,7 +49,7 @@ AuthenticationNamespace = api.namespace("Authentication", path="/api/authenticat
 StudentNamespace = api.namespace("Student", path="/api/authenticate/students")
 InstructorsNamespace = api.namespace("Instructor", path="/api/authenticate/instructors")
 ClassroomNamspace = api.namespace("Classroom", path="/api/courses")
-ResourceNamespace = api.namespace("Resource", path="/api/courses")
+ResourceNamespace = api.namespace("Resource", path="/api/course")
 CourseNamespace = api.namespace("Course", path="/api/courses")
 
 
