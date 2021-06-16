@@ -2,7 +2,7 @@ from flask_marshmallow import Marshmallow
 from flask_restplus import fields
 from flask_restplus.inputs import email
 from flask_sqlalchemy import model
-from .models import *
+from models import *
 
 ma = Marshmallow()
 
