@@ -9,9 +9,9 @@ from flask_jwt_extended import (get_jwt_identity)
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from settings import *
-from models import *
-from ma import *
+from .settings import *
+from .models import *
+from .ma import *
 import json
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import ( create_access_token, get_jwt,
@@ -57,6 +57,9 @@ courses_schema = CourseSchema(many=True)
 
 add_student_schema = AddStudentSchema()
 add_students_schema = AddStudentSchema(many=True)
+
+classroom_schema = ClassroomSchema()
+classrooms_schema = ClassroomSchema(many=True)
 
 studentList_schema = StudentListSchema(many=True)
 
@@ -302,7 +305,11 @@ class coursesResource(Resource):
        
 
 
+<<<<<<< HEAD
 @CourseNamespace.route('/<int:courseID>/student/<int:studentID>')
+=======
+@CourseNamespace.route('<int:courseID>/student/<int:studentID>')
+>>>>>>> cb4d52b3d690899fe56ebf3b676a53e6612f109c
 class deleteStudent(Resource):
     def delete(self,courseID,studentID):
         c = CourseStudents.query.filter_by(StudentID=studentID, CourseID=courseID).first()
@@ -404,7 +411,6 @@ class courseResourceThree(Resource):
 @CourseNamespace.route('/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
     def get(self,courseID):
-        # TODO fetch real student Id
         student_id = get_jwt_identity()
         course= CourseStudents.query.filter_by(StudentID=student_id, CourseID=courseID).first()
         if course:
@@ -414,12 +420,10 @@ class courseResourceFour(Resource):
 @CourseNamespace.route('/instructorcourses')
 class courseResourceFive(Resource):
     def get(self):
-        # TODO fetch real instructor Id
         instructorId = get_jwt_identity()
 
         courseLst = Courses(InstructorID = instructorId).all()
 
-        # TODO create Schema
         return courseLst
     
 #############################################
@@ -431,8 +435,10 @@ CLASSROOM
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
     def get(self,courseID,classroomID):
-        classRoom = VirtualClassrooms.query.get(classroomID)
-        return json.dump(classRoom)
+        classroom = VirtualClassrooms.query.filter_by(ClassroomID=courseID, CourseID=courseID).first()
+        if not classroom:
+            return "Classroom Not Found", 404
+        return classroom_schema.dump(classroom), 200
     
     def patch(self,courseID,classroomID):
         return
