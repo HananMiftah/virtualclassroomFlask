@@ -12,9 +12,9 @@ from flask_jwt_extended import (get_jwt_identity)
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .settings import *
-from .models import *
-from .ma import *
+from settings import *
+from models import *
+from ma import *
 import json
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import ( create_access_token, get_jwt,
@@ -232,6 +232,19 @@ class studentResource(Resource):
         db.session.commit()
 
         return student_schema.dump(student), 200
+
+
+@StudentNamespace.route('/studentByEmail/<string:email>')
+class StudentByEmail(Resource):
+    def get(self,email):
+        '''
+        Get Student Info
+        '''
+        student = Students.query.filter_by(Email=email).first()
+
+        if student:
+            return student_schema.dump(student)
+        return abort(404, "Student not found")
 
 #############################################
 '''
