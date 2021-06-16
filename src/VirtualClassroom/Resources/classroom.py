@@ -32,12 +32,13 @@ classroom = api.model("Virtualclassrooms",{
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>')
 class classroomResource(Resource):
+    @jwt_required()
     def get(self,courseID,classroomID):
         classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
         if not classroom:
             return "Classroom Not Found", 404
         return classroom_schema.dump(classroom), 200
-    
+    @jwt_required()
     def delete(self,courseID,classroomID):
         classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
         if not classroom:
@@ -48,6 +49,7 @@ class classroomResource(Resource):
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/attendance')
 class classroomResource(Resource):
+    @jwt_required()
     def get(self,courseID,classroomID):
         classroom = VirtualClassrooms.query.filter_by(ClassroomID=classroomID, CourseID=courseID).first()
         if not classroom:
@@ -68,13 +70,16 @@ class classroomResource(Resource):
 
 @ClassroomNamspace.route('/<int:courseID>/classrooms')
 class classroomResourceOne(Resource):
+    @jwt_required()
     def get(self,courseID):
-        classrooms = VirtualClassrooms.query.all()
+        classrooms = VirtualClassrooms.query.filter_by(CourseID=courseID)
         if not classrooms:
             return "No classrooms available"
         return classrooms_schema.dump(classrooms), 200
     
     @api.expect(classroom)
+    @jwt_required()
+
     def post(self,courseID):
         new_classroom = VirtualClassrooms()
         new_classroom.ClassroomName = request.json['ClassroomName']
@@ -89,5 +94,6 @@ class classroomResourceOne(Resource):
     
 @ClassroomNamspace.route('/<int:courseID>/classrooms/<int:classroomID>/join')
 class classroomResourceTwo(Resource):
+
     def get(self,courseID,classroomID):
         return

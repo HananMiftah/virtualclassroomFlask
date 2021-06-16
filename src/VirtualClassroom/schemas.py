@@ -15,7 +15,7 @@ class StudentSchema(ma.Schema):
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
-    Password = fields.String(required=True, load_only=True, data_key="password")
+    Password = fields.String(required=True, load_only=True)
 
     
     
@@ -30,14 +30,14 @@ class StudentSchema(ma.Schema):
 
 class InstructorSchema(ma.Schema):
     class Meta:
-        fields = ("InstructorID","FirstName","LastName","Email")
+        fields = ("InstructorID","FirstName","LastName","Email","Password")
         model = Instructors
         ordered=True
     InstructorID=fields.Integer(data_key="userid")
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
-    Password = fields.String(required=True, load_only=True, data_key="password")
+    Password = fields.String(required=True, load_only=True)
 
     
     @validates("Email")
