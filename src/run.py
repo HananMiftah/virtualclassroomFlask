@@ -1,5 +1,5 @@
 from VirtualClassroom import create_app
 
-app = create_app()
+app, socket_io = create_app()
 if __name__ == "__main__":
-    app.run(host='localhost', port=51044, debug=True)
+    socket_io.run(app, debug=True)
