@@ -65,6 +65,7 @@ class Student(Resource):
 
 @StudentNamespace.route('/<int:stuID>')
 class studentResource(Resource):
+    @jwt_required()
     def get(self,stuID):
         '''
         Get Student Info
@@ -75,6 +76,7 @@ class studentResource(Resource):
             return student_schema.dump(student)
         return "Student not found",404
     @api.expect(student)
+    @jwt_required()
     def patch(self,studentId):
         '''
         Edit Student Info
