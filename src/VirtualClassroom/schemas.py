@@ -112,3 +112,9 @@ class ClassroomStudentSchema(ma.Schema):
     class Meta:
         fields =("name","id","email")
         model=STUDENTLIST
+
+
+class ResourceSchema(ma.Schema):
+    class Meta:
+        fields = ("ResourceID", "FileName", "CreationDate")
+        model = Resources

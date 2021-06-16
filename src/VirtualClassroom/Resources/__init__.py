@@ -12,6 +12,8 @@ def init_api():
     from VirtualClassroom.Resources.Student import StudentNamespace
     from VirtualClassroom.Resources.Instructor import InstructorsNamespace
     from VirtualClassroom.Resources.Course import CourseNamespace
+    from VirtualClassroom.Resources.Resource import ResourceNamespace
+
     
 
 blueprint = Blueprint('api_v1', __name__)
