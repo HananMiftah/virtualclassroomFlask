@@ -19,7 +19,7 @@ def create_app(config_class=Config):
 
 
     jwt=JWTManager(app)
-    cors.init_app(app)
+    cors.init_app(app,allow_headers='*')
     db.init_app(app)
     ma.init_app(app)
 

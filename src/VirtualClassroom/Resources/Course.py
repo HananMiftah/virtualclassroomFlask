@@ -35,6 +35,7 @@ course = api.model("Courses", {
 
 @CourseNamespace.route('')
 class coursesResource(Resource):
+    @jwt_required()
     @api.expect(course)
     def post(self):
        new_course = Courses()
@@ -64,9 +65,11 @@ class deleteStudent(Resource):
 
 @CourseNamespace.route('/<int:courseID>')
 class courseResource(Resource):
+    @jwt_required()
     def get(self,courseID):
+        print
         result = Courses.query.filter_by(CourseID=courseID).first()
-
+        print(result)
         if not result:
             return "Course Not Found", 404
 
@@ -96,7 +99,7 @@ class courseResource(Resource):
 @CourseNamespace.route('/student/<int:courseID>')
 class courseResourceOne(Resource):
     def get(self,courseID):
-        studentID = 1
+        studentID = get_jwt_identity()
         course = Courses.query.filter_by(CourseID= courseID).first()
         if not course:
             return "Course Not Found", 404
@@ -135,7 +138,7 @@ class courseResourceTwo(Resource):
 class courseResourceThree(Resource):
     def get(self):
         # TODO fetch real student Id
-        student_id = 1
+        student_id = get_jwt_identity()
         courses= CourseStudents.query.filter_by(StudentID=student_id).all()
         lst =[]
 
@@ -152,6 +155,7 @@ class courseResourceThree(Resource):
 
 @CourseNamespace.route('/studentcourses/<int:courseID>')
 class courseResourceFour(Resource):
+    @jwt_required()
     def get(self,courseID):
         # TODO fetch real student Id
         student_id = get_jwt_identity()
@@ -162,12 +166,22 @@ class courseResourceFour(Resource):
 
 @CourseNamespace.route('/instructorcourses')
 class courseResourceFive(Resource):
+    @jwt_required()
     def get(self):
-        # TODO fetch real instructor Id
-        instructorId = get_jwt_identity()
+        instructor_id = get_jwt_identity()
+        print("Instructor ID" + str(instructor_id))
+        courses= Courses.query.filter_by(InstructorID=instructor_id).all()
+        lst =[]
 
-        courseLst = Courses(InstructorID = instructorId).all()
-
-        # TODO create Schema
-        return courseLst
+        for course in courses:
+            a= COURSES()
+            print("SOME COURSE")
+            print(course.CourseID)
+            c = Courses.query.get(course.CourseID)
+            a.CourseID = course.CourseID
+            a.CourseTitle = c.CourseTitle
+            a.CourseDescription = c.CourseDescription
+            a.InstructorID = c.InstructorID
+            lst.append(a)
+        return courses_schema.dump(lst)
     

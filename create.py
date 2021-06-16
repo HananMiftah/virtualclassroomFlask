@@ -1,8 +1,11 @@
 from flask import Flask,request, render_template
+from flask_cors import CORS
+
 from settings import *
 from models import *
 
 app = Flask(__name__)
+CORS(app, allow_headers='*')
 
 app.config['SERVER_NAME'] = FLASK_SERVER_NAME
 db_uri = SQLALCHEMY_DATABASE_URI

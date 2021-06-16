@@ -67,7 +67,7 @@ class authentication(Resource):
                     'role':role,
                     'token': token}
         
-        return "Incorrect Username or password" ,401
+        abort(401,message="Incorrect Username or password")
 
 
 
