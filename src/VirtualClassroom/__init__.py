@@ -13,7 +13,7 @@ cors = CORS(resources={r"/*":{"origins":"*"}})
 ma = Marshmallow()
 
 def create_app(config_class=Config):
-    from src.irtualClassroom.Resources import blueprint, init_api
+    from src.VirtualClassroom.Resources import blueprint, init_api
     init_api()
     app = Flask(__name__)
     socket_io = SocketIO(app, cors_allowed_origins="*")
