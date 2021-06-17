@@ -3,9 +3,9 @@ from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-from VirtualClassroom.config import *
+from src.VirtualClassroom.config import *
 from flask_socketio import SocketIO
-from VirtualClassroom.Socket.VirtualClass import register_websocket
+from src.VirtualClassroom.Socket.VirtualClass import register_websocket
 
 
 db = SQLAlchemy()
@@ -13,7 +13,7 @@ cors = CORS(resources={r"/*":{"origins":"*"}})
 ma = Marshmallow()
 
 def create_app(config_class=Config):
-    from VirtualClassroom.Resources import blueprint, init_api
+    from src.irtualClassroom.Resources import blueprint, init_api
     init_api()
     app = Flask(__name__)
     socket_io = SocketIO(app, cors_allowed_origins="*")

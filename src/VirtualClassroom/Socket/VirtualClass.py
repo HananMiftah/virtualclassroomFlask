@@ -40,7 +40,7 @@ class Socket(Namespace):
             emit("ClassInfo", json.dumps(classInfo["participants"]), room=group_name)
 
     def on_JoinRoom(self, call_id, group_name, token):
-        from VirtualClassroom.models import Instructors, Students
+        from src.VirtualClassroom.models import Instructors, Students
         from flask_jwt_extended import decode_token
         res = decode_token(token)
         print(res)

@@ -1,18 +1,18 @@
 import re
 from flask import Blueprint
 from flask_restplus import Api
-from VirtualClassroom.config import *
-from VirtualClassroom.schemas import *
-from VirtualClassroom.models import *
+from src.VirtualClassroom.config import *
+from src.VirtualClassroom.schemas import *
+from src.VirtualClassroom.models import *
 
 
 def init_api():
-    from VirtualClassroom.Resources.classroom import ClassroomNamspace
-    from VirtualClassroom.Resources.Authentication import AuthenticationNamespace
-    from VirtualClassroom.Resources.Student import StudentNamespace
-    from VirtualClassroom.Resources.Instructor import InstructorsNamespace
-    from VirtualClassroom.Resources.Course import CourseNamespace
-    from VirtualClassroom.Resources.Resource import ResourceNamespace
+    from src.VirtualClassroom.Resources.classroom import ClassroomNamspace
+    from src.VirtualClassroom.Resources.Authentication import AuthenticationNamespace
+    from src.VirtualClassroom.Resources.Student import StudentNamespace
+    from src.VirtualClassroom.Resources.Instructor import InstructorsNamespace
+    from src.VirtualClassroom.Resources.Course import CourseNamespace
+    from src.VirtualClassroom.Resources.Resource import ResourceNamespace
 
     
 
