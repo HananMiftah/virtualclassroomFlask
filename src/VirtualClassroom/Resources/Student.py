@@ -1,29 +1,8 @@
-import re
-# from virtualclassroomFlask.models import Instructors
-# from virtualclassroomFlask.application import Student
-from flask import Flask, request, flash
-from marshmallow import fields, Schema, validate, validates, ValidationError
-
-from flask_marshmallow import Marshmallow
-from flask_restplus import Resource, fields,reqparse,abort
-from werkzeug.security import generate_password_hash, check_password_hash
-
 from VirtualClassroom.Resources import api
-from VirtualClassroom.schemas import *
-from VirtualClassroom.models import *
-from flask_jwt_extended import ( create_access_token, get_jwt,
-                            jwt_required, get_jwt_identity)
-from datetime import timedelta
-from VirtualClassroom import db
-StudentNamespace = api.namespace("Student", path="/authenticate/students")
-
-student_schema = StudentSchema()
-students_schema = StudentSchema(many=True)
-
-studentList_schema = StudentListSchema(many=True)
 
 
-# Model required by flask_restplus for expect
+StudentNamespace = api.namespace("Student", path="/api/authenticate/students")
+
 student = api.model("Students", {
     'FirstName': fields.String(),
     'LastName': fields.String(),
@@ -31,8 +10,10 @@ student = api.model("Students", {
     'Password': fields.String(),
 })
 
-
-
+'''
+STUDENT
+'''
+#############################################
 
 @StudentNamespace.route('/createstudent')
 class Student(Resource):
@@ -41,13 +22,7 @@ class Student(Resource):
         '''
         Create a new Student
         '''
-        data = request.get_json()
-        try:
-            args = student_schema.load(data)
-        except ValidationError as errors:
-            return errors.messages , 400
-
-
+        
         new_student = Students()
         new_student.FirstName = request.json['FirstName']
         new_student.LastName = request.json['LastName']
