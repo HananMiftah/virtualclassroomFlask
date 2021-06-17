@@ -19,9 +19,11 @@ class Socket(Namespace):
         print("Client has connected")
 
     def on_SendMute(self, call_id, group_name):
+        print("Getting send mute")
         emit("MakeMute", call_id, room=group_name)
 
     def on_SendUnMute(self, call_id, group_name):
+        print("Getting send unmute")
         emit("MakeUnMute", call_id, room=group_name)
 
     def on_disconnect(self):

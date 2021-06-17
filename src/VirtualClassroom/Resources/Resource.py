@@ -62,7 +62,7 @@ class resourcesResource(Resource):
         file = Resources.query.filter_by(CourseID=courseID).all()
         if file:
             return resources_schema.dump(file), 200
-        return 'Resource not found', 404
+        return [], 200
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
