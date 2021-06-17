@@ -35,21 +35,26 @@ class Socket(Namespace):
             classInfo = Socket.groupInformation[group_name]
             if (classInfo != None):
                 classInfo["participants"].pop(call_id)
-            print(call_id)
-            print(Socket.groupInformation[group_name])
             emit("ClassInfo", json.dumps(classInfo["participants"]), room=group_name)
 
     def on_JoinRoom(self, call_id, group_name, token):
-        print("There has been a join room call")
+        from VirtualClassroom.models import Instructors, Students
+        from flask_jwt_extended import decode_token
+        res = decode_token(token)
+        print(res)
+        role = res["role"]
+        userId = res["sub"]
         # TODO: Get role and id from token
-        role = "Instructor"
-        id = "Test"
+        if role == "Instructor":
+            instructor = Instructors.query.filter_by(InstructorID=userId).first()
+        else:
+            user = Students.query.filter_by(StudentID=userId).first()
 
         class_info = Socket.groupInformation[group_name]
 
         class_info["participants"][call_id] = {
-            'UserName' : "Name",
-            'Role' : "Instructor",
+            'UserName' : user.FirstName + " " + user.LastName,
+            'Role' : role,
             'ConnectionId' : request.sid,
             'CallId' : call_id,
             'HasAudio' : True,

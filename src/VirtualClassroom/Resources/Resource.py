@@ -32,8 +32,6 @@ upload_folder = 'static'
 
 
 
-
-
 @ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
 

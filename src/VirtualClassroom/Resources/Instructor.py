@@ -64,10 +64,10 @@ class instructorsResource(Resource):
 class instructorResource(Resource):
     @jwt_required()
     def get(self,instructorID):
-        instructor = Instructors.query.filter_by(StudentID=instructorID).first()
+        instructor = Instructors.query.filter_by(InstructorID=instructorID).first()
 
         if instructor:
-            return student_schema.dump(instructor)
+            return instructor_schema.dump(instructor)
         return "Instructor not found",404
         
     @jwt_required()
