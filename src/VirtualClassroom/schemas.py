@@ -37,8 +37,7 @@ class InstructorSchema(ma.Schema):
     FirstName = fields.String(required=True)
     LastName = fields.String(required=True)
     Email = fields.Email(required=True)
-    Password = fields.String(required=True, load_only=True)
-
+    Password = fields.String(required=True, load_only=True, data_key="Password")
     
     @validates("Email")
     def validate_username(self, Email):
@@ -105,7 +104,7 @@ class StudentListSchema(ma.Schema):
 
 class ClassroomSchema(ma.Schema):
     class Meta:
-        fields =("ClassroomName","Date","StartTime","EndTime","CourseID")
+        fields =("ClassroomName","Date","StartTime","EndTime","CourseID","ClassroomID")
         model=VirtualClassrooms
 
 class ClassroomStudentSchema(ma.Schema):

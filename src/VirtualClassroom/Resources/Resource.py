@@ -1,9 +1,10 @@
 
 import re
+# from settings import UPLOAD_FOLDER
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
 from marshmallow import fields, Schema, validate, validates, ValidationError
-from flask import Flask, request, flash
+from flask import Flask, request, flash, make_response
 from flask_marshmallow import Marshmallow
 from flask_restplus import Resource, fields,reqparse,abort
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -11,15 +12,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from VirtualClassroom.Resources import api
 from VirtualClassroom.schemas import *
 from VirtualClassroom.models import *
+from VirtualClassroom.config import *
+
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
 from VirtualClassroom import db
-import os
+import os,uuid
 
-ResourceNamespace = api.namespace("Resource", path="/courses")
+
+ResourceNamespace = api.namespace("Resource", path="/course")
 
 resource_schema = ResourceSchema()
+resources_schema = ResourceSchema(many=True)
+
+upload_folder = 'static'
 
 
 
@@ -29,23 +36,21 @@ resource_schema = ResourceSchema()
 
 @ResourceNamespace.route('/<int:courseID>/resources')
 class resourcesResource(Resource):
-    @jwt_required()
 
+    @jwt_required()
     def post(self,courseID):
         # saving the file to the server
-        fileType = request.headers['Content-Type'].split("/")[1]
         contentType = request.headers['Content-Type']
-        fileName = request.headers['File-Name'] #TODO
 
         randomfileName = str(uuid.uuid4())
-        with open(os.path.join(upload_folder, randomfileName+"."+fileType), "wb") as fp:
-            fp.write(request.data)
+        with open(os.path.join(upload_folder, randomfileName), "wb") as fp:
+            fp.write(request.files['file'].stream.read())
 
         # saving the file's metadata to database
         new_resource = Resources()
         new_resource.FilePath = upload_folder
-        new_resource.FileName = fileName +"."+ fileType
-        new_resource.RandomFileName = randomfileName +"."+ fileType
+        new_resource.FileName = request.files['file'].filename
+        new_resource.RandomFileName = randomfileName
         new_resource.ContentType = contentType
         new_resource.CourseID = int(courseID)
         new_resource.CreationDate = datetime.now()
@@ -54,6 +59,12 @@ class resourcesResource(Resource):
         db.session.commit()
         
         return {'resourceID':new_resource.ResourceID}, 201
+    @jwt_required()
+    def get(self,courseID):
+        file = Resources.query.filter_by(CourseID=courseID).all()
+        if file:
+            return resources_schema.dump(file), 200
+        return 'Resource not found', 404
 
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>')
 class resourceResource(Resource):
@@ -76,9 +87,9 @@ class resourceResource(Resource):
 @ResourceNamespace.route('/<int:courseID>/resources/<int:resourceID>/download')
 class resourcesResourceOne(Resource):
     @jwt_required()
-
     def get(self,courseID,resourceID):
         file = Resources.query.filter_by(ResourceID=int(resourceID)).first()
+        print(file.FileName)
         if file:
             try:
                 filePath = file.FilePath
@@ -92,4 +103,6 @@ class resourcesResourceOne(Resource):
                 return response
             except:
                 return 'Resource not found', 404
+            
+        
         return 'Resource not found', 404

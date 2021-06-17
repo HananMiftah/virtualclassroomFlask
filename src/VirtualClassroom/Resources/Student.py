@@ -99,13 +99,14 @@ class studentResource(Resource):
 @StudentNamespace.route('/studentByEmail/<string:email>')
 class StudentByEmail(Resource):
     @jwt_required()
-
     def get(self,email):
         '''
         Get Student Info
         '''
         student = Students.query.filter_by(Email=email).first()
-
+        print("SFNAME")
+        print(student.FirstName)
+        print("SFNAME")
         if student:
             return student_schema.dump(student)
         return abort(404, "Student not found")

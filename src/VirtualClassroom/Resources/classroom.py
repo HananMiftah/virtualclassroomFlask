@@ -14,6 +14,8 @@ from VirtualClassroom.models import *
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
+from dateutil.parser import parse
+
 from VirtualClassroom import db
 
 
@@ -79,12 +81,14 @@ class classroomResourceOne(Resource):
     
     @api.expect(classroom)
     @jwt_required()
-
     def post(self,courseID):
         new_classroom = VirtualClassrooms()
         new_classroom.ClassroomName = request.json['ClassroomName']
         new_classroom.CourseID = courseID
-        new_classroom.Date = datetime.strptime(request.json['Date'],"%d/%m/%y").strftime('%d/%m/%y')
+        # new_classroom.URL = "url"
+        print("\n")
+        print(request.json['Date'])
+        new_classroom.Date = datetime.strptime(request.json['Date'],'%Y-%m-%dT%H:%M:%S.%fZ')
         new_classroom.StartTime = request.json['StartTime']
         new_classroom.EndTime = request.json['EndTime']
 

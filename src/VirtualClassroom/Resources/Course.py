@@ -1,3 +1,4 @@
+# from ma import AddStudentSchema
 import re
 # from virtualclassroomFlask.models import Instructors
 # from virtualclassroomFlask.application import Student
@@ -17,6 +18,11 @@ from VirtualClassroom import db
 CourseNamespace = api.namespace("Course", path="/courses")
 
 
+add_student_schema = AddStudentSchema()
+
+studentList_schema = StudentListSchema()
+studentLists_schema = StudentListSchema(many=True)
+
 course_schema = CourseSchema()
 courses_schema = CourseSchema(many=True)
 
@@ -35,6 +41,7 @@ course = api.model("Courses", {
 
 @CourseNamespace.route('')
 class coursesResource(Resource):
+    @jwt_required()
     @api.expect(course)
     @jwt_required()
     def post(self):
@@ -60,7 +67,7 @@ class deleteStudent(Resource):
         if not c:
             return 'Student Not Registered in this course', 400
             
-        db.session.delete()
+        db.session.delete(c)
         db.session.commit()
 
 
@@ -69,8 +76,9 @@ class deleteStudent(Resource):
 class courseResource(Resource):
     @jwt_required()
     def get(self,courseID):
+        print
         result = Courses.query.filter_by(CourseID=courseID).first()
-
+        print(result)
         if not result:
             return "Course Not Found", 404
 
@@ -79,7 +87,7 @@ class courseResource(Resource):
     @api.expect(courseStudents)
     @jwt_required()
     def post(self,courseID):
-        
+        print()
         student = CourseStudents.query.filter_by(StudentID = request.json['StudentID'], CourseID= courseID).first()
         if student:
             abort(400, message="Student Already Registered")
@@ -102,7 +110,7 @@ class courseResource(Resource):
 class courseResourceOne(Resource):
     @jwt_required()
     def get(self,courseID):
-        studentID = 1
+        studentID = get_jwt_identity()
         course = Courses.query.filter_by(CourseID= courseID).first()
         if not course:
             return "Course Not Found", 404
@@ -132,7 +140,7 @@ class courseResourceTwo(Resource):
 
 
         # TODO : Create Schema
-        return studentList_schema.dump(students)
+        return studentLists_schema.dump(students)
 
     # def post(self,courseID):
 
@@ -143,14 +151,14 @@ class courseResourceThree(Resource):
     @jwt_required()
     def get(self):
         # TODO fetch real student Id
-        student_id = 1
+        student_id = get_jwt_identity()
         courses= CourseStudents.query.filter_by(StudentID=student_id).all()
         lst =[]
 
         for course in courses:
             a= COURSES()
             c = Courses.query.filter_by(CourseID = course.CourseID).first()
-            a.CourseId = course.CourseID
+            a.CourseID = c.CourseID
             a.CourseTitle = c.CourseTitle
             a.CourseDescription = c.CourseDescription
             a.InstructorID = c.InstructorID
@@ -166,18 +174,30 @@ class courseResourceFour(Resource):
         student_id = get_jwt_identity()
         course= CourseStudents.query.filter_by(StudentID=student_id, CourseID=courseID).first()
         if course:
-            return Courses.query.filter_by(courseID = courseID).first()
+            a = Courses.query.filter_by(CourseID = courseID).first()
+            print("CID")
+            print(a.CourseID)
+            return course_schema.dump(a)
         return abort(404, 'Student Not enrolled')
 
 @CourseNamespace.route('/instructorcourses')
 class courseResourceFive(Resource):
     @jwt_required()
     def get(self):
-        # TODO fetch real instructor Id
-        instructorId = get_jwt_identity()
+        instructor_id = get_jwt_identity()
+        print("Instructor ID" + str(instructor_id))
+        courses= Courses.query.filter_by(InstructorID=instructor_id).all()
+        lst =[]
 
-        courseLst = Courses(InstructorID = instructorId).all()
-
-        # TODO create Schema
-        return courseLst
+        for course in courses:
+            a= COURSES()
+            print("SOME COURSE")
+            print(course.CourseID)
+            c = Courses.query.get(course.CourseID)
+            a.CourseID = course.CourseID
+            a.CourseTitle = c.CourseTitle
+            a.CourseDescription = c.CourseDescription
+            a.InstructorID = c.InstructorID
+            lst.append(a)
+        return courses_schema.dump(lst)
     
