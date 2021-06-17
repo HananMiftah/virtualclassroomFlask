@@ -8,13 +8,13 @@ from flask_marshmallow import Marshmallow
 from flask_restplus import Resource, fields,reqparse,abort
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from VirtualClassroom.Resources import api
-from VirtualClassroom.schemas import *
-from VirtualClassroom.models import *
+from src.VirtualClassroom.Resources import api
+from src.VirtualClassroom.schemas import *
+from src.VirtualClassroom.models import *
 from flask_jwt_extended import ( create_access_token, get_jwt,
                             jwt_required, get_jwt_identity)
 from datetime import timedelta
-from VirtualClassroom import db
+from src.VirtualClassroom import db
 StudentNamespace = api.namespace("Student", path="/authenticate/students")
 
 student_schema = StudentSchema()
